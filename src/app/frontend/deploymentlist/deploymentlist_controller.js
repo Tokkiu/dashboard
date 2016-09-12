@@ -26,7 +26,7 @@ export class DeploymentListController {
   constructor(deploymentList, kdDeploymentListResource) {
     /** @export {!backendApi.DeploymentList} */
     this.deploymentList = deploymentList;
-
+    console.log('deploymentList:'+this.deploymentList.deployments.length);
     /** @export {!angular.Resource} */
     this.deploymentListResource = kdDeploymentListResource;
   }

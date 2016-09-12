@@ -22,6 +22,8 @@ import petSetListModule from 'petsetlist/petsetlist_module';
 import replicationControllerListModule from 'replicationcontrollerlist/replicationcontrollerlist_module';
 import replicaSetListModule from 'replicasetlist/replicasetlist_module';
 import stateConfig from './workloads_stateconfig';
+import serviceListModule from 'servicelist/servicelist_module';
+import endpointListModule from 'endpointlist/endpointlist_module';
 
 /**
  * Module with a view that displays resources categorized as workloads, e.g., Replica Sets or
@@ -43,6 +45,8 @@ export default angular
           deploymentListModule.name,
           daemonSetListModule.name,
           petSetListModule.name,
+          serviceListModule.name,
+          endpointListModule.name
         ])
     .config(stateConfig)
     .factory('kdWorkloadResource', workloadResource);

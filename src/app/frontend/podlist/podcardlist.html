@@ -31,21 +31,38 @@ limitations under the License.
     <kd-resource-card-header-column grow="nogrow">{{::$ctrl.i18n.MSG_POD_LIST_AGE_LABEL}}
     </kd-resource-card-header-column>
     <kd-resource-card-header-column grow="nogrow">{{::$ctrl.i18n.MSG_POD_LIST_CLUSTER_IP_LABEL}}
+
     </kd-resource-card-header-column>
     <kd-resource-card-header-column ng-if="::$ctrl.showMetrics()">
       {{::$ctrl.i18n.MSG_POD_LIST_CPU_USAGE_LABEL}}
     </kd-resource-card-header-column>
     <kd-resource-card-header-column ng-if="::$ctrl.showMetrics()">
       {{::$ctrl.i18n.MSG_POD_LIST_MEMORY_USAGE_LABEL}}
+
     </kd-resource-card-header-column>
-    <kd-resource-card-header-column size="small" grow="nogrow">
+    <kd-resource-card-header-column grow="nogrow" size="small" class="kd-row-layout-column kd-row-layout-column">
+
+      <select ng-model="$ctrl.myPodStatus" ng-change="$ctrl.changeselect()" style="-webkit-box-shadow:none;
+          box-shadow:none;background-color:white;position:relative;padding:5px; background:transparent; font-size: 14px; border:none; height:30px;color:#909993;width:80px;cursor:pointer">
+        <option value="all" selected="selected">ALL</option>
+        <option value="Succeeded">Succeeded</option>
+        <option value="Failed">Failed</option>
+        <option value="Pending">Pending</option>
+        <option value="Running">Running</option>
+      </select>
+
     </kd-resource-card-header-column>
+    <md-button type="button"  name="button" ng-click="$ctrl.removeAll()" style="display:inline">delete FAlied</md-button>
+
+
+    <!-- 设置pod状态的标签 -->
   </kd-resource-card-header-columns>
 
-  <kd-resource-card ng-if="::$ctrl.podListResource" total-items="::$ctrl.podList.listMeta.totalItems"
+
+  <kd-resource-card total-items="$ctrl.podList.listMeta.totalItems"
                     pagination-id="pods" object-meta="pod.objectMeta" type-meta="pod.typeMeta"
                     dir-paginate="pod in $ctrl.podList.pods | itemsPerPage: default">
-    <kd-resource-card-status layout="row">
+    <kd-resource-card-status layout="row" >
       <md-icon class="material-icons kd-error" ng-if="$ctrl.isStatusFailed(pod)">
         error
         <md-tooltip md-direction="right">{{::$ctrl.i18n.MSG_POD_IS_FAILED_TOOLTIP}}</md-tooltip>
@@ -67,7 +84,7 @@ limitations under the License.
           </a>
         </div>
       </kd-resource-card-column>
-      <kd-resource-card-column ng-if="$ctrl.isMultipleNamespaces">
+      <kd-resource-card-column>
         <div>
           <kd-middle-ellipsis display-string="{{::pod.objectMeta.namespace}}">
           </kd-middle-ellipsis>
@@ -102,6 +119,11 @@ limitations under the License.
         </div>
         <div ng-if="::!$ctrl.hasMemoryUsage(pod)">-</div>
       </kd-resource-card-column>
+      <kd-resource-card-column>
+        <md-button ng-click="$ctrl.changeShow(pod.index)" style="cursor:pointer;background-color:#eee">
+          show
+      </md-button>
+      </kd-resource-card-column>
       <kd-resource-card-column class="kd-row-layout-column kd-icon-column">
         <md-button ng-if="::$ctrl.getPodLogsHref(pod)"
                    ng-href="{{::$ctrl.getPodLogsHref(pod)}}" target="_blank" class="md-icon-button">
@@ -117,7 +139,21 @@ limitations under the License.
           </kd-resource-card-edit-menu-item>
         </kd-resource-card-menu>
       </kd-resource-card-column>
+
     </kd-resource-card-columns>
+    <kd-resource-card-footer>
+      <!-- pod info -->
+      <md-content ng-if="$ctrl.pass" ng-show="pod.ifShowDetail">
+        <md-tabs md-border-bottom md-dynamic-height >
+          <md-tab label="{{$ctrl.view}}">
+            <kd-pod-info pod="pod.info"></kd-pod-info>
+            <kd-container-info containers="pod.info.containers"
+                namespace="pod.info.objectMeta.namespace">
+            </kd-container-info>
+          </md-tab>
+        </md-tabs>
+      </md-content>
+    </kd-resource-card-footer>
   </kd-resource-card>
 
   <kd-resource-card ng-if="::!$ctrl.podListResource" object-meta="pod.objectMeta"
@@ -193,7 +229,7 @@ limitations under the License.
   </kd-resource-card>
   <kd-resource-card-list-footer>
     <kd-resource-card-list-pagination pagination-id="pods" list="$ctrl.podList"
-                                      list-resource="$ctrl.podListResource">
+                                      list-resource="$ctrl.podListResource" if-show-detail="$ctrl.ifShowDetail">
     </kd-resource-card-list-pagination>
   </kd-resource-card-list-footer>
 </kd-resource-card-list>

@@ -81,6 +81,7 @@ func (handler *LocaleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		// Do not store the html page in the cache. If the user is to click on 'switch language',
 		// we want a different index.html (for the right locale) to be served when the page refreshes.
 		w.Header().Add("Cache-Control", "no-store")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 	}
 	acceptLanguage := r.Header.Get("Accept-Language")
 	dirName := handler.determineLocalizedDir(acceptLanguage)

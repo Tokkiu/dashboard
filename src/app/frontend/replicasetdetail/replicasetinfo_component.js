@@ -25,7 +25,7 @@ export default class ReplicaSetInfoController {
      * @export {!backendApi.ReplicaSetDetail}
      */
     this.replicaSet;
-
+    // console.log('info:'+JSON.stringify(this.replicaSet));
     /** @export */
     this.i18n = i18n(this.replicaSet);
   }
@@ -38,7 +38,7 @@ export default class ReplicaSetInfoController {
     return this.replicaSet.podInfo.running === this.replicaSet.podInfo.desired;
   }
 }
-
+// console.log("info componnet");
 /**
  * Definition object for the component that displays replica set info.
  *

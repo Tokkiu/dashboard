@@ -16,40 +16,17 @@ package secret
 
 import (
 	"github.com/kubernetes/dashboard/src/app/backend/resource/common"
+
 	"k8s.io/kubernetes/pkg/api"
 )
 
-// The code below allows to perform complex data section on []api.Secret
+func paginate(secrets []api.Secret, pQuery *common.PaginationQuery) []api.Secret {
+	startIndex, endIndex := pQuery.GetPaginationSettings(len(secrets))
 
-type SecretCell api.Secret
-
-func (self SecretCell) GetProperty(name common.PropertyName) common.ComparableValue {
-	switch name {
-	case common.NameProperty:
-		return common.StdComparableString(self.ObjectMeta.Name)
-	case common.CreationTimestampProperty:
-		return common.StdComparableTime(self.ObjectMeta.CreationTimestamp.Time)
-	case common.NamespaceProperty:
-		return common.StdComparableString(self.ObjectMeta.Namespace)
-	default:
-		// if name is not supported then just return a constant dummy value, sort will have no effect.
-		return nil
+	// Return all items if provided settings do not meet requirements
+	if !pQuery.CanPaginate(len(secrets), startIndex) {
+		return secrets
 	}
-}
 
-
-func toCells(std []api.Secret) []common.DataCell {
-	cells := make([]common.DataCell, len(std))
-	for i := range std {
-		cells[i] = SecretCell(std[i])
-	}
-	return cells
-}
-
-func fromCells(cells []common.DataCell) []api.Secret {
-	std := make([]api.Secret, len(cells))
-	for i := range std {
-		std[i] = api.Secret(cells[i].(SecretCell))
-	}
-	return std
+	return secrets[startIndex:endIndex]
 }

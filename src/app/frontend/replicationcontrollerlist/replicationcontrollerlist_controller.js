@@ -26,9 +26,12 @@ export class ReplicationControllerListController {
   constructor(replicationControllerList, kdRCListResource) {
     /** @export {!backendApi.ReplicationControllerList} */
     this.replicationControllerList = replicationControllerList;
+    console.log("replicationControllerList");
+    console.log(this.replicationControllerList);
 
     /** @export {!angular.Resource} */
     this.rcListResource = kdRCListResource;
+    this.ifShowDetail;
   }
 
   /**

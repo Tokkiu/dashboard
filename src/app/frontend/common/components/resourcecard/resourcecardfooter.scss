@@ -34,6 +34,16 @@
 
 .kd-resource-card-list-with-statuses {
   .kd-resource-card-footer {
-    padding-left: 6 * $baseline-grid;
+    .md-content{
+      padding-left: 6 * $baseline-grid;
+    }
+  }
+}
+
+.kd-resource-card-list-with-statuses {
+  .kd-resource-card-footer {
+    .kd-content-card{
+      padding-left: 0 * $baseline-grid;
+    }
   }
 }

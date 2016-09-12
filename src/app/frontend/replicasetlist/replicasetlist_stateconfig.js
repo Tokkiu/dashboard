@@ -32,6 +32,7 @@ export default function stateConfig($stateProvider) {
     parent: chromeStateName,
     resolve: {
       'replicaSetList': resolveReplicaSetList,
+      // 'ifShowDetail':resolveIfShowDetail,
     },
     data: {
       [breadcrumbsConfig]: {

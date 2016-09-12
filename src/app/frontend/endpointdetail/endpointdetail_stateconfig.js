@@ -15,14 +15,14 @@
 import {actionbarViewName, stateName as chromeStateName} from 'chrome/chrome_state';
 import {breadcrumbsConfig} from 'common/components/breadcrumbs/breadcrumbs_service';
 import {appendDetailParamsToUrl} from 'common/resource/resourcedetail';
-import {stateName as secretList, stateUrl} from 'secretlist/list_state';
 
+import {stateName as endpointList, stateUrl} from './../endpointlist/endpointlist_state';
 import {ActionBarController} from './actionbar_controller';
-import {SecretDetailController} from './detail_controller';
-import {stateName} from './detail_state';
+import {EndpointDetailController} from './endpointdetail_controller';
+import {stateName} from './endpointdetail_state';
 
 /**
- * Configures states for the secret details view.
+ * Configures states for the endpoint details view.
  *
  * @param {!ui.router.$stateProvider} $stateProvider
  * @ngInject
@@ -32,25 +32,25 @@ export default function stateConfig($stateProvider) {
     url: appendDetailParamsToUrl(stateUrl),
     parent: chromeStateName,
     resolve: {
-      'secretDetailResource': getSecretDetailResource,
-      'secretDetail': getSecretDetail,
+      'endpointDetailResource': getEndpointDetailResource,
+      'endpointDetail': resolveEndpointDetail,
     },
     data: {
       [breadcrumbsConfig]: {
         'label': '{{$stateParams.objectName}}',
-        'parent': secretList,
+        'parent': endpointList,
       },
     },
     views: {
       '': {
-        controller: SecretDetailController,
-        controllerAs: '$ctrl',
-        templateUrl: 'secretdetail/detail.html',
+        controller: EndpointDetailController,
+        controllerAs: 'ctrl',
+        templateUrl: 'endpointdetail/endpointdetail.html',
       },
       [actionbarViewName]: {
         controller: ActionBarController,
         controllerAs: '$ctrl',
-        templateUrl: 'secretdetail/actionbar.html',
+        templateUrl: 'endpointdetail/actionbar.html',
       },
     },
   });
@@ -59,18 +59,18 @@ export default function stateConfig($stateProvider) {
 /**
  * @param {!./../common/resource/resourcedetail.StateParams} $stateParams
  * @param {!angular.$resource} $resource
- * @return {!angular.Resource<!backendApi.SecretDetail>}
+ * @return {!angular.Resource<!backendApi.EndpointDetail>}
  * @ngInject
  */
-export function getSecretDetailResource($resource, $stateParams) {
-  return $resource(`api/v1/secret/${$stateParams.objectNamespace}/${$stateParams.objectName}`);
+export function getEndpointDetailResource($stateParams, $resource) {
+  return $resource(`api/v1/endpoint/${$stateParams.objectNamespace}/${$stateParams.objectName}`);
 }
 
 /**
- * @param {!angular.Resource<!backendApi.SecretDetail>} secretDetailResource
+ * @param {!angular.Resource<!backendApi.EndpointDetail>} endpointDetailResource
  * @return {!angular.$q.Promise}
  * @ngInject
  */
-export function getSecretDetail(secretDetailResource) {
-  return secretDetailResource.get().$promise;
+export function resolveEndpointDetail(endpointDetailResource) {
+  return endpointDetailResource.get().$promise;
 }

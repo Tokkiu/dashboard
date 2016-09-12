@@ -29,7 +29,15 @@ limitations under the License.
             </kd-service-card-list>
           </kd-content>
         </kd-content-card>
-
+        <kd-content-card ng-if="ctrl.endpointList.endpoints.length">
+        <!--<kd-content-card>-->
+          <kd-title>{{::ctrl.i18n.MSG_RC_ENDOPINT_TITLE}}</kd-title>
+          <kd-content>
+            <kd-endpoint-card-list endpoint-list="ctrl.endpointList"
+                                  endpoint-list-resource="ctrl.endpointListResource">
+            </kd-endpoint-card-list>
+          </kd-content>
+        </kd-content-card>
         <kd-content-card ng-if="::ctrl.replicationControllerDetail.podList.pods.length">
           <kd-title>{{::ctrl.i18n.MSG_RC_DETAIL_PODS_TITLE}}</kd-title>
           <kd-content>

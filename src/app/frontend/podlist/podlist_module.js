@@ -46,5 +46,6 @@ export default angular
  * @ngInject
  */
 function podListResource($resource) {
+  // console.log($resource);
   return $resource('api/v1/pod/:namespace');
 }

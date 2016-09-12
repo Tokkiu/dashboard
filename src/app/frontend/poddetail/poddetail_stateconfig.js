@@ -56,7 +56,7 @@ export default function stateConfig($stateProvider) {
   });
 }
 
-/**
+/** 
  * @param {!./../common/resource/resourcedetail.StateParams} $stateParams
  * @param {!angular.$resource} $resource
  * @return {!angular.Resource<!backendApi.PodDetail>}

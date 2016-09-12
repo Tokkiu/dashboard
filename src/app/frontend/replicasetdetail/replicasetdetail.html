@@ -20,22 +20,33 @@ limitations under the License.
       <md-tab label="{{::ctrl.i18n.MSG_REPLICA_SET_DETAIL_OVERVIEW_LABEL}}">
         <kd-replica-set-info replica-set="::ctrl.replicaSetDetail"></kd-replica-set-info>
 
-        <kd-content-card ng-if="::ctrl.replicaSetDetail.serviceList.services.length">
-          <kd-title>{{::ctrl.i18n.MSG_REPLICA_SET_DETAIL_SERVICES_TITLE}}</kd-title>
-          <kd-content>
-            <kd-service-card-list service-list="::ctrl.replicaSetDetail.serviceList"
-                                  service-list-resource="::ctrl.replicaSetServicesResource">
-            </kd-service-card-list>
-          </kd-content>
-        </kd-content-card>
         <kd-content-card ng-if="::ctrl.replicaSetDetail.podList.pods.length">
           <kd-title>{{::ctrl.i18n.MSG_REPLICA_SET_DETAIL_PODS_TITLE}}</kd-title>
           <kd-content>
             <kd-pod-card-list pod-list="::ctrl.replicaSetDetail.podList" with-statuses="true"
-                              pod-list-resource="::ctrl.replicaSetPodsResource">
+                              pod-list-resource="::ctrl.replicaSetPodsResource" if-show-detail="$ctrl.ifShowDetail">
             </kd-pod-card-list>
           </kd-content>
         </kd-content-card>
+
+        <kd-content-card ng-if="ctrl.endpointList.endpoints.length">
+          <kd-title>{{::ctrl.i18n.MSG_REPLICA_SET_DETAIL_ENDPOINTS_TITLE}}</kd-title>
+          <kd-content>
+            <kd-endpoint-card-list endpoint-list="ctrl.endpointList"
+                                   endpoint-list-resource="ctrl.endpointListResource">
+            </kd-endpoint-card-list>
+          </kd-content>
+        </kd-content-card>
+
+        <kd-content-card ng-if="ctrl.serviceList.services.length">
+          <kd-title>SERVICES</kd-title>
+          <kd-content>
+            <kd-service-card-list service-list="::ctrl.serviceList"
+                                  service-list-resource="::ctrl.serviceListResource">
+            </kd-service-card-list>
+          </kd-content>
+        </kd-content-card>
+
       </md-tab>
       <md-tab label="{{::ctrl.i18n.MSG_REPLICA_SET_DETAIL_EVENTS_LABEL}}">
         <kd-event-card-list event-list="::ctrl.replicaSetDetail.eventList"></kd-event-card-list>

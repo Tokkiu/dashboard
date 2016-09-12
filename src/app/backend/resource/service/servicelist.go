@@ -57,23 +57,23 @@ type ServiceList struct {
 
 // GetServiceList returns a list of all services in the cluster.
 func GetServiceList(client client.Interface, nsQuery *common.NamespaceQuery,
-	dsQuery *common.DataSelectQuery) (*ServiceList, error) {
+	pQuery *common.PaginationQuery) (*ServiceList, error) {
 	log.Printf("Getting list of all services in the cluster")
 
 	channels := &common.ResourceChannels{
 		ServiceList: common.GetServiceListChannel(client, nsQuery, 1),
 	}
 
-	return GetServiceListFromChannels(channels, dsQuery)
+	return GetServiceListFromChannels(channels, pQuery)
 }
 
 // GetServiceListFromChannels returns a list of all services in the cluster.
 func GetServiceListFromChannels(channels *common.ResourceChannels,
-	dsQuery *common.DataSelectQuery) (*ServiceList, error) {
+	pQuery *common.PaginationQuery) (*ServiceList, error) {
 	services := <-channels.ServiceList.List
 	if err := <-channels.ServiceList.Error; err != nil {
 		return nil, err
 	}
 
-	return CreateServiceList(services.Items, dsQuery), nil
+	return CreateServiceList(services.Items, pQuery), nil
 }

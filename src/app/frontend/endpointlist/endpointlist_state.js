@@ -13,4 +13,7 @@
 // limitations under the License.
 
 /** Name of the state. Can be used in, e.g., $state.go method. */
-export const stateName = 'secretdetail';
+export const stateName = 'endpoint';
+
+/** Absolute URL of the state. */
+export const stateUrl = '/endpoint';

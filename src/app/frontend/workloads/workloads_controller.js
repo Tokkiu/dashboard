@@ -25,11 +25,14 @@ export class WorkloadsController {
    * @param {!angular.Resource} kdPetSetListResource
    * @param {!angular.Resource} kdJobListResource
    * @param {!angular.Resource} kdRCListResource
+   * @param {!angular.Resource} kdServiceListResource
+   * @param {!angular.Resource} kdendpointListResource
    * @ngInject
    */
   constructor(
       workloads, kdPodListResource, kdReplicaSetListResource, kdDaemonSetListResource,
-      kdDeploymentListResource, kdPetSetListResource, kdJobListResource, kdRCListResource) {
+      kdDeploymentListResource, kdPetSetListResource, kdJobListResource, kdRCListResource, kdServiceListResource,$resource) {
+    this.resource=$resource;
     /** @export {!backendApi.Workloads} */
     this.workloads = workloads;
 
@@ -54,10 +57,51 @@ export class WorkloadsController {
     /** @export {!angular.Resource} */
     this.rcListResource = kdRCListResource;
 
+    /** @export {!angular.Resource} */
+    this.serviceListResource = kdServiceListResource;
+
+    /** @export {!angular.Resource} */
+    this.endpointListResource = this.resource('api/v1/endpoint');
+
     /** @export */
     this.i18n = i18n;
+
+    this.selects=[{
+      select:"deployments",
+      i18n:this.i18n.SELECT_DEPLOYMENTS,
+    },{
+      select:"replica set",
+      i18n:this.i18n.SELECT_RS,
+    },{
+      select:"replication controller",
+      i18n:this.i18n.SELECT_RC,
+    },{
+      select:"service",
+      i18n:this.i18n.SELECT_SERVICES,
+    },{
+      select:"endpoint",
+      i18n:this.i18n.SELECT_ENDPOINTS,
+    },{
+      select:"pods",
+      i18n:this.i18n.SELECT_PODS,
+    }];
+
+    this.option='deployments';
+
+    this.endpointList=null;
+
+    this.init_();
   }
 
+  init_() {
+    this.resource('api/v1/endpoint').get().$promise.then((response) => {
+      this.endpointList=response;
+      // console.log("endpoints");
+      // console.log(response);
+      // console.log("serviceList");
+      // console.log(this.workloads.serviceList);
+    });
+  }
   /**
    * @return {boolean}
    * @export
@@ -70,10 +114,18 @@ export class WorkloadsController {
         this.workloads.replicationControllerList.listMeta.totalItems +
         this.workloads.podList.listMeta.totalItems +
         this.workloads.daemonSetList.listMeta.totalItems +
-        this.workloads.petSetList.listMeta.totalItems;
+        this.workloads.petSetList.listMeta.totalItems +
+        this.workloads.serviceList.listMeta.totalItems;
+        // this.workloads.endpointList.listMeta.totalItems;
 
     return resourcesLength === 0;
   }
+
+  changeSelect(option){
+    console.log(option);
+    this.option=option;
+  }
+
 }
 
 const i18n = {
@@ -98,4 +150,28 @@ const i18n = {
   /** @export {string} @desc Label "Pods", which appears above the pods list on the workloads
    page.*/
   MSG_WORKLOADS_PODS_LABEL: goog.getMsg('Pods'),
+  /** @export {string} @desc Label "Services", which appears above the services list on the workloads
+   page.*/
+  MSG_WORKLOADS_SERVICES_LABEL: goog.getMsg('Services'),
+  /** @export {string} @desc Label "endpoints", which appears above the endpoints list on the workloads
+   page.*/
+  MSG_WORKLOADS_ENDPOINTS_LABEL:goog.getMsg('Endpoints'),
+  /** @export {string} @desc Label "endpoints", which appears above the endpoints list on the workloads
+   page.*/
+  SELECT_DEPLOYMENTS:goog.getMsg("deployments"),
+  /** @export {string} @desc Label "endpoints", which appears above the endpoints list on the workloads
+   page.*/
+  SELECT_RS:goog.getMsg("replica set"),
+  /** @export {string} @desc Label "endpoints", which appears above the endpoints list on the workloads
+   page.*/
+  SELECT_RC:goog.getMsg("replication controller"),
+  /** @export {string} @desc Label "endpoints", which appears above the endpoints list on the workloads
+   page.*/
+  SELECT_SERVICES:goog.getMsg("service"),
+  /** @export {string} @desc Label "endpoints", which appears above the endpoints list on the workloads
+   page.*/
+  SELECT_PODS:goog.getMsg("pods"),
+  /** @export {string} @desc Label "endpoints", which appears above the endpoints list on the workloads
+   page.*/
+  SELECT_ENDPOINTS:goog.getMsg("endpoint"),
 };

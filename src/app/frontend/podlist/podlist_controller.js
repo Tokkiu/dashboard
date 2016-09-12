@@ -26,7 +26,7 @@ export class PodListController {
   constructor(podList, kdPodListResource) {
     /** @export {!backendApi.PodList} */
     this.podList = podList;
-
+    // console.log("podList:"+JSON.stringify(this.podList));
     /** @export {!angular.$resource} */
     this.podListResource = kdPodListResource;
   }

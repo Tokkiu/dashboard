@@ -65,5 +65,23 @@ limitations under the License.
         </kd-resource-card-edit-menu-item>
       </kd-resource-card-menu>
     </kd-resource-card-column>
+    <kd-resource-card-column>
+      <md-button ng-click="$ctrl.changeShow()" style="cursor:pointer;background-color:#eee">
+        show
+      </md-button>
+    </kd-resource-card-column>
   </kd-resource-card-columns>
+
+  <kd-resource-card-footer style="width:100%">
+    <md-content ng-if="$ctrl.pass">
+      <md-tabs md-border-bottom md-dynamic-height>
+
+        <md-tab label="{{$ctrl.i18n.MSG_SERVICE_VIEW_TOOLTIP}}">
+          <kd-service-info service="$ctrl.serviceDetail"></kd-service-info>
+        </md-tab>
+
+      </md-tabs>
+    </md-content>
+  </kd-resource-card-footer>
+
 </kd-resource-card>

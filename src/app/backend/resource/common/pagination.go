@@ -17,9 +17,6 @@ package common
 // By default backend pagination will not be applied.
 var NoPagination = NewPaginationQuery(-1, -1)
 
-// No items will be returned
-var EmptyPagination = NewPaginationQuery(0, 0)
-
 // PaginationQuery structure represents pagination settings
 type PaginationQuery struct {
 	// How many items per page should be returned
@@ -33,16 +30,10 @@ func NewPaginationQuery(itemsPerPage, page int) *PaginationQuery {
 	return &PaginationQuery{itemsPerPage, page}
 }
 
-// IsValidPagination returns true if pagination has non negative parameters
-func (p *PaginationQuery) IsValidPagination() bool {
-	return p.ItemsPerPage >= 0 && p.Page >= 0
+// CanPaginate returns true if pagination can be applied to the list, false otherwise
+func (p *PaginationQuery) CanPaginate(itemsCount, startingIndex int) bool {
+	return p.ItemsPerPage > 0 && p.Page >= 0 && itemsCount > startingIndex
 }
-
-// IsPageAvailable returns true if at least one element can be placed on page. False otherwise
-func (p *PaginationQuery) IsPageAvailable(itemsCount, startingIndex int) bool {
-	return itemsCount > startingIndex && p.ItemsPerPage > 0
-}
-
 
 // GetPaginationSettings based on number of items and pagination query parameters returns start
 // and end index that can be used to return paginated list of items.

@@ -32,10 +32,9 @@ import (
 	"github.com/kubernetes/dashboard/src/app/backend/resource/job"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/namespace"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/node"
-	"github.com/kubernetes/dashboard/src/app/backend/resource/persistentvolume"
-	"github.com/kubernetes/dashboard/src/app/backend/resource/persistentvolumeclaim"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/petset"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/pod"
+	"github.com/kubernetes/dashboard/src/app/backend/resource/endpoint"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/replicaset"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/replicationcontroller"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/secret"
@@ -200,6 +199,15 @@ func CreateHTTPAPIHandler(client *clientK8s.Client, heapsterClient client.Heapst
 		apiV1Ws.GET("/pod").
 			To(apiHandler.handleGetPods).
 			Writes(pod.PodList{}))
+	// -status
+	apiV1Ws.Route(
+		apiV1Ws.GET("/status/{status}").
+			To(apiHandler.handleGetPodsByStatus).
+			Writes(pod.PodList{}))
+	apiV1Ws.Route(
+		apiV1Ws.GET("/status/{status}/{namespace}").
+			To(apiHandler.handleGetPodsByStatus).
+			Writes(pod.PodList{}))
 	apiV1Ws.Route(
 		apiV1Ws.GET("/pod/{namespace}").
 			To(apiHandler.handleGetPods).
@@ -220,6 +228,21 @@ func CreateHTTPAPIHandler(client *clientK8s.Client, heapsterClient client.Heapst
 		apiV1Ws.GET("/pod/{namespace}/{pod}/log/{container}").
 			To(apiHandler.handleLogs).
 			Writes(container.Logs{}))
+
+	apiV1Ws.Route(
+		apiV1Ws.GET("/endpoint").
+			To(apiHandler.handleGetEndpointList).
+			Writes(endpoint.EndpointList{}))
+
+	apiV1Ws.Route(
+		apiV1Ws.GET("/endpoint/{namespace}").
+			To(apiHandler.handleGetEndpointList).
+			Writes(endpoint.EndpointList{}))
+
+	apiV1Ws.Route(
+		apiV1Ws.GET("/endpoint/{namespace}/{endpoint}").
+			To(apiHandler.handleGetEndpointDetail).
+			Writes(endpoint.EndpointDetail{}))
 
 	apiV1Ws.Route(
 		apiV1Ws.GET("/deployment").
@@ -290,17 +313,13 @@ func CreateHTTPAPIHandler(client *clientK8s.Client, heapsterClient client.Heapst
 			Writes(namespace.NamespaceDetail{}))
 
 	apiV1Ws.Route(
-		apiV1Ws.GET("/secret").
-			To(apiHandler.handleGetSecretList).
-			Writes(secret.SecretList{}))
-	apiV1Ws.Route(
 		apiV1Ws.GET("/secret/{namespace}").
 			To(apiHandler.handleGetSecretList).
 			Writes(secret.SecretList{}))
 	apiV1Ws.Route(
-		apiV1Ws.GET("/secret/{namespace}/{name}").
-			To(apiHandler.handleGetSecretDetail).
-			Writes(secret.SecretDetail{}))
+		apiV1Ws.GET("/secret").
+			To(apiHandler.handleGetSecretList).
+			Writes(secret.SecretList{}))
 	apiV1Ws.Route(
 		apiV1Ws.POST("/secret").
 			To(apiHandler.handleCreateImagePullSecret).
@@ -372,34 +391,42 @@ func CreateHTTPAPIHandler(client *clientK8s.Client, heapsterClient client.Heapst
 	apiV1Ws.Route(
 		apiV1Ws.PUT("/{kind}/namespace/{namespace}/name/{name}").
 			To(apiHandler.handlePutResource))
-
-	apiV1Ws.Route(
-		apiV1Ws.GET("/persistentvolume").
-			To(apiHandler.handleGetPersistentVolumeList).
-			Writes(persistentvolume.PersistentVolumeList{}))
-	apiV1Ws.Route(
-		apiV1Ws.GET("/persistentvolume/{persistentvolume}").
-			To(apiHandler.handleGetPersistentVolumeDetail).
-			Writes(persistentvolume.PersistentVolumeDetail{}))
-
-	apiV1Ws.Route(
-		apiV1Ws.GET("/persistentvolumeclaim/").
-			To(apiHandler.handleGetPersistentVolumeClaimList).
-			Writes(persistentvolumeclaim.PersistentVolumeClaimList{}))
-	apiV1Ws.Route(
-		apiV1Ws.GET("/persistentvolumeclaim/{namespace}").
-			To(apiHandler.handleGetPersistentVolumeClaimList).
-			Writes(persistentvolumeclaim.PersistentVolumeClaimList{}))
-
 	return wsContainer
 }
+
+//ss test
+func (apiHandler *APIHandler) handleGetEndpointList(request *restful.Request, response *restful.Response) {
+	namespace := parseNamespacePathParameter(request)
+	pagination := parsePaginationPathParameter(request)
+	result, err := endpoint.GetEndpointList(apiHandler.client, namespace, pagination)
+	if err != nil {
+		handleInternalError(response, err)
+		return
+	}
+
+	response.WriteHeaderAndEntity(http.StatusCreated, result)
+}
+
+func (apiHandler *APIHandler) handleGetEndpointDetail(request *restful.Request, response *restful.Response) {
+	namespace := request.PathParameter("namespace")
+	endpointName := request.PathParameter("endpoint")
+	pagination := parsePaginationPathParameter(request)
+	result, err := endpoint.GetEndpointDetail(apiHandler.client, apiHandler.heapsterClient,
+		namespace, endpointName, pagination)
+	if err != nil {
+		handleInternalError(response, err)
+		return
+	}
+	response.WriteHeaderAndEntity(http.StatusCreated, result)
+}
+//ss test end
 
 // Handles get pet set list API call.
 func (apiHandler *APIHandler) handleGetPetSetList(request *restful.Request,
 	response *restful.Response) {
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := petset.GetPetSetList(apiHandler.client, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := petset.GetPetSetList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -413,9 +440,9 @@ func (apiHandler *APIHandler) handleGetPetSetDetail(request *restful.Request,
 	response *restful.Response) {
 	namespace := request.PathParameter("namespace")
 	name := request.PathParameter("petset")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := petset.GetPetSetDetail(apiHandler.client, apiHandler.heapsterClient,
-		namespace, name, dataSelect)
+		namespace, name, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -428,9 +455,9 @@ func (apiHandler *APIHandler) handleGetPetSetPods(request *restful.Request,
 	response *restful.Response) {
 	namespace := request.PathParameter("namespace")
 	name := request.PathParameter("petset")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := petset.GetPetSetPods(apiHandler.client, apiHandler.heapsterClient,
-		dataSelect, name, namespace)
+		pagination, name, namespace)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -441,8 +468,8 @@ func (apiHandler *APIHandler) handleGetPetSetPods(request *restful.Request,
 // Handles get service list API call.
 func (apiHandler *APIHandler) handleGetServiceList(request *restful.Request, response *restful.Response) {
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := resourceService.GetServiceList(apiHandler.client, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := resourceService.GetServiceList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -455,9 +482,9 @@ func (apiHandler *APIHandler) handleGetServiceList(request *restful.Request, res
 func (apiHandler *APIHandler) handleGetServiceDetail(request *restful.Request, response *restful.Response) {
 	namespace := request.PathParameter("namespace")
 	service := request.PathParameter("service")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := resourceService.GetServiceDetail(apiHandler.client, apiHandler.heapsterClient,
-		namespace, service, dataSelect)
+		namespace, service, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -471,9 +498,9 @@ func (apiHandler *APIHandler) handleGetServicePods(request *restful.Request,
 
 	namespace := request.PathParameter("namespace")
 	service := request.PathParameter("service")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := resourceService.GetServicePods(apiHandler.client, apiHandler.heapsterClient,
-		namespace, service, dataSelect)
+		namespace, service, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -483,8 +510,8 @@ func (apiHandler *APIHandler) handleGetServicePods(request *restful.Request,
 
 // Handles get node list API call.
 func (apiHandler *APIHandler) handleGetNodeList(request *restful.Request, response *restful.Response) {
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := node.GetNodeList(apiHandler.client, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := node.GetNodeList(apiHandler.client, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -600,8 +627,8 @@ func (apiHandler *APIHandler) handleGetReplicationControllerList(
 	request *restful.Request, response *restful.Response) {
 
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := replicationcontroller.GetReplicationControllerList(apiHandler.client, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := replicationcontroller.GetReplicationControllerList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -615,9 +642,9 @@ func (apiHandler *APIHandler) handleGetWorkloads(
 	request *restful.Request, response *restful.Response) {
 
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := workload.GetWorkloads(apiHandler.client, apiHandler.heapsterClient, namespace,
-		dataSelect)
+		pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -631,8 +658,8 @@ func (apiHandler *APIHandler) handleGetReplicaSets(
 	request *restful.Request, response *restful.Response) {
 
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := replicaset.GetReplicaSetList(apiHandler.client, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := replicaset.GetReplicaSetList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -647,9 +674,9 @@ func (apiHandler *APIHandler) handleGetReplicaSetDetail(
 
 	namespace := request.PathParameter("namespace")
 	replicaSet := request.PathParameter("replicaSet")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := replicaset.GetReplicaSetDetail(apiHandler.client, apiHandler.heapsterClient,
-		dataSelect, namespace, replicaSet)
+		pagination, namespace, replicaSet)
 
 	if err != nil {
 		handleInternalError(response, err)
@@ -665,27 +692,10 @@ func (apiHandler *APIHandler) handleGetReplicaSetPods(
 
 	namespace := request.PathParameter("namespace")
 	replicaSet := request.PathParameter("replicaSet")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := replicaset.GetReplicaSetPods(apiHandler.client, apiHandler.heapsterClient,
-		dataSelect, replicaSet, namespace)
+		pagination, replicaSet, namespace)
 
-	if err != nil {
-		handleInternalError(response, err)
-		return
-	}
-
-	response.WriteHeaderAndEntity(http.StatusCreated, result)
-}
-
-// Handles get Replica Set services API call.
-func (apiHandler *APIHandler) handleGetReplicaSetServices(
-	request *restful.Request, response *restful.Response) {
-
-	namespace := request.PathParameter("namespace")
-	replicaSet := request.PathParameter("replicaSet")
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := replicaset.GetReplicaSetServices(apiHandler.client, dataSelect, namespace,
-		replicaSet)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -699,8 +709,8 @@ func (apiHandler *APIHandler) handleGetDeployments(
 	request *restful.Request, response *restful.Response) {
 
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := deployment.GetDeploymentList(apiHandler.client, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := deployment.GetDeploymentList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -730,14 +740,28 @@ func (apiHandler *APIHandler) handleGetPods(
 	request *restful.Request, response *restful.Response) {
 
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := pod.GetPodList(apiHandler.client, apiHandler.heapsterClient, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := pod.GetPodList(apiHandler.client, apiHandler.heapsterClient, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
 	}
 
 	response.WriteHeaderAndEntity(http.StatusCreated, result)
+}
+
+func (apiHandler *APIHandler) handleGetPodsByStatus(
+	request *restful.Request,response *restful.Response) {
+	status :=parseStatusPathParameter(request)
+	namespace :=parseNamespacePathParameter(request)
+	pagination :=parsePaginationPathParameter(request)
+	result,err:=pod.GetPodListByStatus(apiHandler.client,apiHandler.heapsterClient,namespace,pagination,status)
+	if err!=nil{
+		handleInternalError(response,err)
+		return
+	}
+
+	response.WriteHeaderAndEntity(http.StatusCreated,result)
 }
 
 // Handles get Pod detail API call.
@@ -868,10 +892,10 @@ func (apiHandler *APIHandler) handleGetReplicationControllerPods(
 
 	namespace := request.PathParameter("namespace")
 	replicationController := request.PathParameter("replicationController")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 
 	result, err := replicationcontroller.GetReplicationControllerPods(apiHandler.client, apiHandler.heapsterClient,
-		dataSelect, replicationController, namespace)
+		pagination, replicationController, namespace)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -900,8 +924,8 @@ func (apiHandler *APIHandler) handleCreateNamespace(request *restful.Request,
 func (apiHandler *APIHandler) handleGetNamespaces(
 	request *restful.Request, response *restful.Response) {
 
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := namespace.GetNamespaceList(apiHandler.client, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := namespace.GetNamespaceList(apiHandler.client, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -937,22 +961,11 @@ func (apiHandler *APIHandler) handleCreateImagePullSecret(request *restful.Reque
 	response.WriteHeaderAndEntity(http.StatusCreated, secret)
 }
 
-func (apiHandler *APIHandler) handleGetSecretDetail(request *restful.Request, response *restful.Response) {
-	namespace := request.PathParameter("namespace")
-	name := request.PathParameter("name")
-	result, err := secret.GetSecretDetail(apiHandler.client, namespace, name)
-	if err != nil {
-		handleInternalError(response, err)
-		return
-	}
-	response.WriteHeaderAndEntity(http.StatusCreated, result)
-}
-
 // Handles get secrets list API call.
 func (apiHandler *APIHandler) handleGetSecretList(request *restful.Request, response *restful.Response) {
-	dataSelect := parseDataSelectPathParameter(request)
 	namespace := parseNamespacePathParameter(request)
-	result, err := secret.GetSecretList(apiHandler.client, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := secret.GetSecretList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -962,8 +975,8 @@ func (apiHandler *APIHandler) handleGetSecretList(request *restful.Request, resp
 
 func (apiHandler *APIHandler) handleGetConfigMapList(request *restful.Request, response *restful.Response) {
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := configmap.GetConfigMapList(apiHandler.client, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := configmap.GetConfigMapList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -973,45 +986,13 @@ func (apiHandler *APIHandler) handleGetConfigMapList(request *restful.Request, r
 
 func (apiHandler *APIHandler) handleGetConfigMapDetail(request *restful.Request, response *restful.Response) {
 	namespace := request.PathParameter("namespace")
-	name := request.PathParameter("configmap")
-	result, err := configmap.GetConfigMapDetail(apiHandler.client, namespace, name)
+	service := request.PathParameter("configmap")
+	result, err := configmap.GetConfigMapDetail(apiHandler.client, namespace, service)
 	if err != nil {
 		handleInternalError(response, err)
 		return
 	}
 	response.WriteHeaderAndEntity(http.StatusCreated, result)
-}
-
-func (apiHandler *APIHandler) handleGetPersistentVolumeList(request *restful.Request, response *restful.Response) {
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := persistentvolume.GetPersistentVolumeList(apiHandler.client, dataSelect)
-	if err != nil {
-		handleInternalError(response, err)
-		return
-	}
-	response.WriteHeaderAndEntity(http.StatusOK, result)
-}
-
-func (apiHandler *APIHandler) handleGetPersistentVolumeDetail(request *restful.Request, response *restful.Response) {
-	name := request.PathParameter("persistentvolume")
-	result, err := persistentvolume.GetPersistentVolumeDetail(apiHandler.client, name)
-	if err != nil {
-		handleInternalError(response, err)
-		return
-	}
-	response.WriteHeaderAndEntity(http.StatusCreated, result)
-}
-
-func (apiHandler *APIHandler) handleGetPersistentVolumeClaimList(request *restful.Request, response *restful.Response) {
-
-	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := persistentvolumeclaim.GetPersistentVolumeClaimList(apiHandler.client, namespace, dataSelect)
-	if err != nil {
-		handleInternalError(response, err)
-		return
-	}
-	response.WriteHeaderAndEntity(http.StatusOK, result)
 }
 
 // Handles log API call.
@@ -1044,9 +1025,9 @@ func (apiHandler *APIHandler) handleGetPodContainers(request *restful.Request, r
 func (apiHandler *APIHandler) handleGetReplicationControllerEvents(request *restful.Request, response *restful.Response) {
 	namespace := request.PathParameter("namespace")
 	replicationController := request.PathParameter("replicationController")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 
-	result, err := replicationcontroller.GetReplicationControllerEvents(apiHandler.client, dataSelect, namespace,
+	result, err := replicationcontroller.GetReplicationControllerEvents(apiHandler.client, pagination, namespace,
 		replicationController)
 	if err != nil {
 		handleInternalError(response, err)
@@ -1060,9 +1041,9 @@ func (apiHandler *APIHandler) handleGetReplicationControllerServices(request *re
 	response *restful.Response) {
 	namespace := request.PathParameter("namespace")
 	replicationController := request.PathParameter("replicationController")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 
-	result, err := replicationcontroller.GetReplicationControllerServices(apiHandler.client, dataSelect,
+	result, err := replicationcontroller.GetReplicationControllerServices(apiHandler.client, pagination,
 		namespace, replicationController)
 	if err != nil {
 		handleInternalError(response, err)
@@ -1083,8 +1064,8 @@ func (apiHandler *APIHandler) handleGetDaemonSetList(
 	request *restful.Request, response *restful.Response) {
 
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := daemonset.GetDaemonSetList(apiHandler.client, namespace, dataSelect)
+	pagination := parsePaginationPathParameter(request)
+	result, err := daemonset.GetDaemonSetList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -1099,9 +1080,9 @@ func (apiHandler *APIHandler) handleGetDaemonSetDetail(
 
 	namespace := request.PathParameter("namespace")
 	daemonSet := request.PathParameter("daemonSet")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := daemonset.GetDaemonSetDetail(apiHandler.client, apiHandler.heapsterClient,
-		dataSelect, namespace, daemonSet)
+		pagination, namespace, daemonSet)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -1116,9 +1097,9 @@ func (apiHandler *APIHandler) handleGetDaemonSetPods(
 
 	namespace := request.PathParameter("namespace")
 	daemonSet := request.PathParameter("daemonSet")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 	result, err := daemonset.GetDaemonSetPods(apiHandler.client, apiHandler.heapsterClient,
-		dataSelect, daemonSet, namespace)
+		pagination, daemonSet, namespace)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -1133,8 +1114,8 @@ func (apiHandler *APIHandler) handleGetDaemonSetServices(
 
 	namespace := request.PathParameter("namespace")
 	daemonSet := request.PathParameter("daemonSet")
-	dataSelect := parseDataSelectPathParameter(request)
-	result, err := daemonset.GetDaemonSetServices(apiHandler.client, dataSelect, namespace,
+	pagination := parsePaginationPathParameter(request)
+	result, err := daemonset.GetDaemonSetServices(apiHandler.client, pagination, namespace,
 		daemonSet)
 	if err != nil {
 		handleInternalError(response, err)
@@ -1169,9 +1150,9 @@ func (apiHandler *APIHandler) handleDeleteDaemonSet(
 func (apiHandler *APIHandler) handleGetJobList(request *restful.Request,
 	response *restful.Response) {
 	namespace := parseNamespacePathParameter(request)
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 
-	result, err := job.GetJobList(apiHandler.client, namespace, dataSelect)
+	result, err := job.GetJobList(apiHandler.client, namespace, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -1183,10 +1164,10 @@ func (apiHandler *APIHandler) handleGetJobList(request *restful.Request,
 func (apiHandler *APIHandler) handleGetJobDetail(request *restful.Request, response *restful.Response) {
 	namespace := request.PathParameter("namespace")
 	jobParam := request.PathParameter("job")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 
 	result, err := job.GetJobDetail(apiHandler.client, apiHandler.heapsterClient, namespace,
-		jobParam, dataSelect)
+		jobParam, pagination)
 	if err != nil {
 		handleInternalError(response, err)
 		return
@@ -1201,9 +1182,9 @@ func (apiHandler *APIHandler) handleGetJobPods(request *restful.Request,
 
 	namespace := request.PathParameter("namespace")
 	jobParam := request.PathParameter("job")
-	dataSelect := parseDataSelectPathParameter(request)
+	pagination := parsePaginationPathParameter(request)
 
-	result, err := job.GetJobPods(apiHandler.client, apiHandler.heapsterClient, dataSelect,
+	result, err := job.GetJobPods(apiHandler.client, apiHandler.heapsterClient, pagination,
 		jobParam, namespace)
 	if err != nil {
 		handleInternalError(response, err)
@@ -1229,6 +1210,19 @@ func parseNamespacePathParameter(request *restful.Request) *common.NamespaceQuer
 	return common.NewNamespaceQuery(nonEmptyNamespaces)
 }
 
+func parseStatusPathParameter(request *restful.Request) *common.NamespaceQuery  {
+	status:=request.PathParameter("status")
+	statuss:=strings.Split(status,",")
+	var nonEmptyStatuss []string
+	for _,n:=range statuss{
+		n=strings.Trim(n,"")
+		if len(n) > 0 {
+			nonEmptyStatuss=append(nonEmptyStatuss,n)
+		}
+	}
+	return common.NewNamespaceQuery(nonEmptyStatuss)
+}
+
 func parsePaginationPathParameter(request *restful.Request) *common.PaginationQuery {
 	itemsPerPage, err := strconv.ParseInt(request.QueryParameter("itemsPerPage"), 10, 0)
 	if err != nil {
@@ -1242,17 +1236,4 @@ func parsePaginationPathParameter(request *restful.Request) *common.PaginationQu
 
 	// Frontend pages start from 1 and backend starts from 0
 	return common.NewPaginationQuery(int(itemsPerPage), int(page-1))
-}
-
-// Parses query parameters of the request and returns a SortQuery object
-func parseSortPathParameter(request *restful.Request) *common.SortQuery {
-	return common.NewSortQuery(strings.Split(request.QueryParameter("sortby"), ","))
-
-}
-
-// Parses query parameters of the request and returns a DataSelectQuery object
-func parseDataSelectPathParameter(request *restful.Request) *common.DataSelectQuery {
-	paginationQuery := parsePaginationPathParameter(request)
-	sortQuery := parseSortPathParameter(request)
-	return common.NewDataSelectQuery(paginationQuery, sortQuery)
 }

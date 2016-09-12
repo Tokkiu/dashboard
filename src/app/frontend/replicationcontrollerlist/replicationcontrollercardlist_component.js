@@ -26,6 +26,7 @@ class RCCardListController {
 
     /** @export */
     this.i18n = i18n;
+    this.ifShowDetail;
   }
 
   /**
@@ -45,6 +46,7 @@ export const replicationControllerCardListComponent = {
   bindings: {
     'replicationControllerList': '<',
     'replicationControllerListResource': '<',
+    'ifShowDetail':'<',
   },
   templateUrl: 'replicationcontrollerlist/replicationcontrollercardlist.html',
   controller: RCCardListController,
@@ -69,4 +71,7 @@ const i18n = {
   /** @export {string} @desc Label 'Images' which appears as a column label in the
       table of replication controllers (RC list view). */
   MSG_RC_LIST_IMAGES_LABEL: goog.getMsg('Images'),
+  /** @export {string} @desc Label 'Option' which appears as a column label in the
+      table of replica sets (replica set list view). */
+  MSG_REPLICA_SET_LIST_OPTION_LABEL:goog.getMsg('Option'),
 };

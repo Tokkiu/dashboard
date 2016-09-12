@@ -8,7 +8,7 @@
           <kd-title>{{::ctrl.i18n.MSG_DEPLOYMENT_DETAIL_NEW_REPLICAS_TITLE}}</kd-title>
           <kd-content>
             <kd-replica-set-card-list
-                    replica-set-list="::ctrl.newReplicaSetList">
+                    replica-set-list="::ctrl.newReplicaSetList" if-show-detail="true">
             </kd-replica-set-card-list>
           </kd-content>
         </kd-content-card>
@@ -17,7 +17,7 @@
           <kd-title>{{::ctrl.i18n.MSG_DEPLOYMENT_DETAIL_OLD_REPLICAS_TITLE}}</kd-title>
           <kd-content>
             <kd-replica-set-card-list
-                    replica-set-list="::ctrl.deploymentDetail.oldReplicaSetList">
+                    replica-set-list="::ctrl.deploymentDetail.oldReplicaSetList" if-show-detail="true">
             </kd-replica-set-card-list>
           </kd-content>
         </kd-content-card>

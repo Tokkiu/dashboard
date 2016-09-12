@@ -47,7 +47,7 @@ type DaemonSet struct {
 
 // GetDaemonSetList returns a list of all Daemon Set in the cluster.
 func GetDaemonSetList(client *client.Client, nsQuery *common.NamespaceQuery,
-	dsQuery *common.DataSelectQuery) (*DaemonSetList, error) {
+	pQuery *common.PaginationQuery) (*DaemonSetList, error) {
 	log.Printf("Getting list of all daemon sets in the cluster")
 	channels := &common.ResourceChannels{
 		DaemonSetList: common.GetDaemonSetListChannel(client, nsQuery, 1),
@@ -56,13 +56,13 @@ func GetDaemonSetList(client *client.Client, nsQuery *common.NamespaceQuery,
 		EventList:     common.GetEventListChannel(client, nsQuery, 1),
 	}
 
-	return GetDaemonSetListFromChannels(channels, dsQuery)
+	return GetDaemonSetListFromChannels(channels, pQuery)
 }
 
 // GetDaemonSetListFromChannels returns a list of all Daemon Seet in the cluster
 // reading required resource list once from the channels.
 func GetDaemonSetListFromChannels(channels *common.ResourceChannels,
-	dsQuery *common.DataSelectQuery) (*DaemonSetList, error) {
+	pQuery *common.PaginationQuery) (*DaemonSetList, error) {
 
 	daemonSets := <-channels.DaemonSetList.List
 	if err := <-channels.DaemonSetList.Error; err != nil {
@@ -79,21 +79,21 @@ func GetDaemonSetListFromChannels(channels *common.ResourceChannels,
 		return nil, err
 	}
 
-	result := CreateDaemonSetList(daemonSets.Items, pods.Items, events.Items, dsQuery)
+	result := CreateDaemonSetList(daemonSets.Items, pods.Items, events.Items, pQuery)
 	return result, nil
 }
 
 // CreateDaemonSetList returns a list of all Daemon Set model objects in the cluster, based on all
 // Kubernetes Daemon Set API objects.
 func CreateDaemonSetList(daemonSets []extensions.DaemonSet, pods []api.Pod,
-	events []api.Event, dsQuery *common.DataSelectQuery) *DaemonSetList {
+	events []api.Event, pQuery *common.PaginationQuery) *DaemonSetList {
 
 	daemonSetList := &DaemonSetList{
 		DaemonSets: make([]DaemonSet, 0),
 		ListMeta:   common.ListMeta{TotalItems: len(daemonSets)},
 	}
 
-	daemonSets = fromCells(common.GenericDataSelect(toCells(daemonSets), dsQuery))
+	daemonSets = paginate(daemonSets, pQuery)
 
 	for _, daemonSet := range daemonSets {
 		matchingPods := common.FilterNamespacedPodsByLabelSelector(pods, daemonSet.Namespace,

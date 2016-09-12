@@ -74,4 +74,7 @@ const i18n = {
   /** @export {string} @desc Label 'External endpoints' which appears as a column label in the
      table of services (service list view). */
   MSG_SERVICE_LIST_EXTERNAL_ENDPOINTS_LABEL: goog.getMsg('External endpoints'),
+  /** @export {string} @desc Label 'External endpoints' which appears as a column label in the
+     table of services (service list view). */
+  MSG_SERVICE_LIST_OPTION_LABEL: goog.getMsg('Option'),
 };

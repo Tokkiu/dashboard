@@ -21,12 +21,11 @@ export class LogsController {
   /**
    * @param {!backendApi.Logs} podLogs
    * @param {!./logs_service.LogsService} logsService
-   * @param $sce
    * @ngInject
    */
-  constructor(podLogs, logsService, $sce) {
+  constructor(podLogs, logsService) {
     /** @export {!Array<string>} Log set. */
-    this.logsSet = podLogs.logs.map((line) => this.formatLine(line, $sce));
+    this.logsSet = podLogs.logs;
 
     /** @private {!./logs_service.LogsService} */
     this.logsService_ = logsService;
@@ -56,30 +55,5 @@ export class LogsController {
       return `${logsTextColor}-invert`;
     }
     return logsTextColor;
-  }
-
-  /**
-   * Formats the given log line as raw HTML to display to the user.
-   * @returns {string}
-   */
-  formatLine(line, $sce) {
-    let escapedLine = this.escapeHtml(line);
-    let formattedLine = ansi_up.ansi_to_html(escapedLine);
-
-    // We know that trustAsHtml is safe here because escapedLine is escaped to
-    // not contain any HTML markup, and formattedLine is the result of passing
-    // ecapedLine to ansi_to_html, which is known to only add span tags.
-    return $sce.trustAsHtml(formattedLine);
-  }
-
-  /**
-   * Escapes an HTML string (e.g. converts "<foo>bar&baz</foo>" to
-   * "&lt;foo&gt;bar&amp;baz&lt;/foo&gt;") by bouncing it through a text node.
-   * @returns {string}
-   */
-  escapeHtml(html) {
-    let div = document.createElement('div');
-    div.appendChild(document.createTextNode(html));
-    return div.innerHTML;
   }
 }

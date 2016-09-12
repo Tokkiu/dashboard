@@ -23,7 +23,7 @@ import (
 
 // GetDaemonSetServices returns list of services that are related to daemon set targeted by given
 // name.
-func GetDaemonSetServices(client client.Interface, dsQuery *common.DataSelectQuery,
+func GetDaemonSetServices(client client.Interface, pQuery *common.PaginationQuery,
 	namespace, name string) (*service.ServiceList, error) {
 
 	daemonSet, err := client.Extensions().DaemonSets(namespace).Get(name)
@@ -43,5 +43,5 @@ func GetDaemonSetServices(client client.Interface, dsQuery *common.DataSelectQue
 
 	matchingServices := common.FilterNamespacedServicesBySelector(services.Items, namespace,
 		daemonSet.Spec.Selector.MatchLabels)
-	return service.CreateServiceList(matchingServices, dsQuery), nil
+	return service.CreateServiceList(matchingServices, pQuery), nil
 }

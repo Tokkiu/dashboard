@@ -46,6 +46,7 @@ export class ResourceCardDeleteMenuItemController {
    * @export
    */
   remove() {
+    console.log(this.resourceKindName);
     this.kdResourceVerberService_
         .showDeleteDialog(
             this.resourceKindName, this.resourceCardCtrl.typeMeta, this.resourceCardCtrl.objectMeta)

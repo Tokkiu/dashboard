@@ -23,7 +23,7 @@ export class PodDetailController {
   constructor(podDetail) {
     /** @export {!backendApi.PodDetail} */
     this.podDetail = podDetail;
-
+    console.log(JSON.stringify(this.podDetail));
     /** @export */
     this.i18n = i18n;
   }

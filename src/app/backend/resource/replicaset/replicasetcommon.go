@@ -18,7 +18,6 @@ import (
 	"github.com/kubernetes/dashboard/src/app/backend/resource/common"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/event"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/pod"
-	"github.com/kubernetes/dashboard/src/app/backend/resource/service"
 
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/apis/extensions"
@@ -27,14 +26,14 @@ import (
 // CreateReplicaSetList creates paginated list of Replica Set model
 // objects based on Kubernetes Replica Set objects array and related resources arrays.
 func CreateReplicaSetList(replicaSets []extensions.ReplicaSet, pods []api.Pod,
-	events []api.Event, dsQuery *common.DataSelectQuery) *ReplicaSetList {
+	events []api.Event, pQuery *common.PaginationQuery) *ReplicaSetList {
 
 	replicaSetList := &ReplicaSetList{
 		ReplicaSets: make([]ReplicaSet, 0),
 		ListMeta:    common.ListMeta{TotalItems: len(replicaSets)},
 	}
 
-	replicaSets = fromCells(common.GenericDataSelect(toCells(replicaSets), dsQuery))
+	replicaSets = paginate(replicaSets, pQuery)
 
 	for _, replicaSet := range replicaSets {
 		matchingPods := common.FilterNamespacedPodsBySelector(pods, replicaSet.ObjectMeta.Namespace,
@@ -61,7 +60,7 @@ func ToReplicaSet(replicaSet *extensions.ReplicaSet, podInfo *common.PodInfo) Re
 
 // ToReplicaSetDetail converts replica set api object to replica set detail model object.
 func ToReplicaSetDetail(replicaSet *extensions.ReplicaSet, eventList common.EventList,
-	podList pod.PodList, podInfo common.PodInfo, serviceList service.ServiceList) ReplicaSetDetail {
+	podList pod.PodList, podInfo common.PodInfo) ReplicaSetDetail {
 
 	return ReplicaSetDetail{
 		ObjectMeta:      common.NewObjectMeta(replicaSet.ObjectMeta),
@@ -69,43 +68,20 @@ func ToReplicaSetDetail(replicaSet *extensions.ReplicaSet, eventList common.Even
 		ContainerImages: common.GetContainerImages(&replicaSet.Spec.Template.Spec),
 		PodInfo:         podInfo,
 		// TODO(floreks): add pagination support
-		PodList:     podList,
-		ServiceList: serviceList,
-		EventList:   eventList,
+		PodList:   podList,
+		EventList: eventList,
 	}
 }
 
-// The code below allows to perform complex data section on []extensions.ReplicaSet
+func paginate(replicaSets []extensions.ReplicaSet,
+	pQuery *common.PaginationQuery) []extensions.ReplicaSet {
 
-type ReplicaSetCell extensions.ReplicaSet
+	startIndex, endIndex := pQuery.GetPaginationSettings(len(replicaSets))
 
-func (self ReplicaSetCell) GetProperty(name common.PropertyName) common.ComparableValue {
-	switch name {
-	case common.NameProperty:
-		return common.StdComparableString(self.ObjectMeta.Name)
-	case common.CreationTimestampProperty:
-		return common.StdComparableTime(self.ObjectMeta.CreationTimestamp.Time)
-	case common.NamespaceProperty:
-		return common.StdComparableString(self.ObjectMeta.Namespace)
-	default:
-		// if name is not supported then just return a constant dummy value, sort will have no effect.
-		return nil
+	// Return all items if provided settings do not meet requirements
+	if !pQuery.CanPaginate(len(replicaSets), startIndex) {
+		return replicaSets
 	}
-}
 
-
-func toCells(std []extensions.ReplicaSet) []common.DataCell {
-	cells := make([]common.DataCell, len(std))
-	for i := range std {
-		cells[i] = ReplicaSetCell(std[i])
-	}
-	return cells
-}
-
-func fromCells(cells []common.DataCell) []extensions.ReplicaSet {
-	std := make([]extensions.ReplicaSet, len(cells))
-	for i := range std {
-		std[i] = extensions.ReplicaSet(cells[i].(ReplicaSetCell))
-	}
-	return std
+	return replicaSets[startIndex:endIndex]
 }

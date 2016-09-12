@@ -55,7 +55,7 @@ export default function stateConfig($stateProvider) {
     },
   });
 }
-
+// console.log("stateConfig");
 /**
  * @param {!angular.Resource} kdReplicaSetDetailResource
  * @param {!./../common/resource/resourcedetail.StateParams} $stateParams

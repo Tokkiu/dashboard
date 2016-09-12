@@ -12,29 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import chromeModule from 'chrome/chrome_module';
-import componentsModule from 'common/components/components_module';
-import eventsModule from 'events/events_module';
+import componentsModule from './../common/components/components_module';
 import filtersModule from 'common/filters/filters_module';
-import stateConfig from './detail_stateconfig';
-import {secretInfoComponent} from './info_component';
+import stateConfig from './endpointdetail_stateconfig';
+import {endpointInfoComponent} from './endpointdetailinfo_component';
 
 /**
- * Angular module for the Secret details view.
+ * Angular module for the Service details view.
  *
- * The view shows detailed view of a Secret.
+ * The view shows detailed view of a Service.
  */
 export default angular
     .module(
-        'kubernetesDashboard.secretDetail',
+        'kubernetesDashboard.endpointDetail',
         [
           'ngMaterial',
           'ngResource',
           'ui.router',
-          componentsModule.name,
           filtersModule.name,
-          eventsModule.name,
-          chromeModule.name,
+          componentsModule.name,
         ])
     .config(stateConfig)
-    .component('kdSecretInfo', secretInfoComponent);
+    .component('kdEndpointInfo', endpointInfoComponent)
+    .factory('kdEndpointPodsResource', endpointPodsResource);
+
+/**
+ * @param {!angular.$resource} $resource
+ * @return {!angular.Resource}
+ * @ngInject
+ */
+function endpointPodsResource($resource) {
+  return $resource('api/v1/endpoint/:namespace/:name/pod');
+}

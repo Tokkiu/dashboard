@@ -15,32 +15,27 @@
 /**
  * @final
  */
-export class SecretDetailController {
+export class EndpointListController {
   /**
-   * @param {!backendApi.SecretDetail} secretDetail
-   * @param {!angular.$window} $window
+   * @param {!backendApi.EndpointList} endpointList
+   * @param {!angular.Resource} kdEndpointListResource
    * @ngInject
    */
-  constructor(secretDetail, $window) {
-    /** @export {!backendApi.SecretDetail} */
-    this.secretDetail = secretDetail;
+  constructor(endpointList, kdEndpointListResource) {
+    /** @export {!backendApi.EndpointList} */
+    this.endpointList = endpointList;
+    
+    console.log("this.endpointList");
 
-    /** @export */
-    this.i18n = i18n;
+    console.log(this.endpointList);
 
-    /** @private {!angular.$window} */
-    this.window_ = $window;
+    /** @export {!angular.Resource} */
+    this.endpointListResource = kdEndpointListResource;
   }
 
   /**
-   * @param {string} valueB64
-   * @return {string}
+   * @return {boolean}
    * @export
    */
-  formatDataValue(valueB64) { return this.window_.atob(valueB64); }
+  shouldShowZeroState() { return this.endpointList.endpoints.length === 0; }
 }
-
-const i18n = {
-  /** @export {string} @desc Config map info details section name. */
-  MSG_SECRET_INFO_DATA_SECTION: goog.getMsg('Data'),
-};

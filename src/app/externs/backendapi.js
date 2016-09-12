@@ -134,7 +134,8 @@ backendApi.ReplicationControllerList;
  *   replicationControllerList: !backendApi.ReplicationControllerList,
  *   podList: !backendApi.PodList,
  *   daemonSetList: !backendApi.DaemonSetList,
- *   petSetList: !backendApi.PetSetList
+ *   petSetList: !backendApi.PetSetList,
+ *   serviceList: !backendApi.ServiceList
  * }}
  */
 backendApi.Workloads;
@@ -675,15 +676,6 @@ backendApi.NamespaceList;
  * }}
  */
 backendApi.NamespaceDetail;
-
-/**
- * @typedef {{
- *   objectMeta: !backendApi.ObjectMeta,
- *   typeMeta: !backendApi.TypeMeta,
- *   data: !Object<string, string>,
- * }}
- */
-backendApi.SecretDetail;
 
 /**
  * @typedef {{

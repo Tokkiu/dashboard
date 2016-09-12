@@ -30,7 +30,7 @@ export default class PodInfoController {
      * @export {!backendApi.PodDetail}
      */
     this.pod;
-
+    // console.log("a pod info:name_"+this.pod.objectMeta.name+"_nodename_"+this.pod.nodeName);
     /** @export */
     this.i18n = i18n;
 
@@ -44,7 +44,7 @@ export default class PodInfoController {
    * @export
    */
   getNodeDetailsHref() {
-    return this.state_.href(stateName, new GlobalStateParams(this.pod.nodeName));
+    return this.state_.href(stateName, new GlobalStateParams(this.pod.nodeName||''));
   }
 }
 

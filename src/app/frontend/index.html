@@ -43,7 +43,33 @@ limitations under the License.
       Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your
       experience.</p>
     <![endif]-->
+    <!-- <div class="" style="text-align:center">
+      <input type="text" name="name" id="method" value="">method
+      <input type="text" name="name" id="url" value="">url
+      <h5 id="mytext"></h5>
+      <button type="button" id="mybutton" name="button" onclick="dohttp()">go http</button>
+      <script type="text/javascript">
+        function dohttp() {
+          var httpRes=new XMLHttpRequest();
+          httpRes.onreadystatechange=function() {
+              if (httpRes.readyState === XMLHttpRequest.DONE) {
+              if (httpRes.status === 200||httpRes.status===201) {
+                // alert(httpRequest.responseText);
+                document.getElementById("mytext").innerHTML=httpRes.responseText;
+              } else {
+                alert('There was a problem with the request.');
+              }
+            }
+          }
+          var url="http://localhost:9090/api/v1/"+document.getElementById("url").value;
+          var method=document.getElementById("method").value;
+          httpRes.open('GET',url,true);
+          // httpRes.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+          httpRes.send();
 
+        }
+      </script>
+    </div> -->
     <kd-chrome layout="column" layout-fill> <!-- Application content is inserted here. --> </kd-chrome>
     <!-- build:js static/vendor.js -->
     <!-- bower:js -->

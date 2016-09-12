@@ -43,7 +43,7 @@ type Namespace struct {
 }
 
 // GetNamespaceList returns a list of all namespaces in the cluster.
-func GetNamespaceList(client *client.Client, dsQuery *common.DataSelectQuery) (*NamespaceList,
+func GetNamespaceList(client *client.Client, pQuery *common.PaginationQuery) (*NamespaceList,
 	error) {
 	log.Printf("Getting namespace list")
 
@@ -56,16 +56,16 @@ func GetNamespaceList(client *client.Client, dsQuery *common.DataSelectQuery) (*
 		return nil, err
 	}
 
-	return toNamespaceList(namespaces.Items, dsQuery), nil
+	return toNamespaceList(namespaces.Items, pQuery), nil
 }
 
-func toNamespaceList(namespaces []api.Namespace, dsQuery *common.DataSelectQuery) *NamespaceList {
+func toNamespaceList(namespaces []api.Namespace, pQuery *common.PaginationQuery) *NamespaceList {
 	namespaceList := &NamespaceList{
 		Namespaces: make([]Namespace, 0),
 		ListMeta:   common.ListMeta{TotalItems: len(namespaces)},
 	}
 
-	namespaces = fromCells(common.GenericDataSelect(toCells(namespaces), dsQuery))
+	namespaces = paginate(namespaces, pQuery)
 
 	for _, namespace := range namespaces {
 		namespaceList.Namespaces = append(namespaceList.Namespaces, toNamespace(namespace))

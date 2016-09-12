@@ -64,14 +64,76 @@ limitations under the License.
         <kd-middle-ellipsis display-string="{{::image}}"></kd-middle-ellipsis>
       </div>
     </kd-resource-card-column>
+    <kd-resource-card-column>
+      <md-button ng-click="$ctrl.changeShow()" style="cursor:pointer;background-color:#eee">
+        show
+      </md-button>
+      <!-- <kd-labels labels="{show}" ng-click="$ctrl.changeShow()" style="cursor:pointer"></kd-labels> -->
+    </kd-resource-card-column>
     <kd-resource-card-column class="kd-row-layout-column kd-icon-column">
       <kd-replication-controller-card-menu replication-controller="::$ctrl.replicationController">
       </kd-replication-controller-card-menu>
     </kd-resource-card-column>
+
   </kd-resource-card-columns>
-  <kd-resource-card-footer ng-if="::$ctrl.hasWarnings()">
-      <div ng-repeat="warning in ::$ctrl.replicationController.pods.warnings">
+  <kd-resource-card-footer >
+      <div ng-repeat="warning in ::$ctrl.replicationController.pods.warnings" ng-if="::$ctrl.hasWarnings()">
         <span class="kd-error">{{::warning.message}}</span>
       </div>
+
+
+      <md-content ng-if="$ctrl.pass" ng-show="$ctrl.ifShowDetail" style="padding-left:40px">
+        <md-tabs md-border-bottom md-dynamic-height>
+          <md-tab label="{{$ctrl.i18n.MSG_RC_DETAIL_VIEW_TITLE}}">
+            <kd-replica-set-info replica-set="$ctrl.nodes"></kd-replica-set-info>
+
+
+
+            <kd-content-card ng-if="$ctrl.nodes.podList.pods.length" >
+              <kd-title>{{$ctrl.i18n.MSG_RC_DETAIL_PODS_TITLE}}</kd-title>
+              <kd-content>
+                <kd-pod-card-list pod-list="$ctrl.nodes.podList" pod-list-resource="$ctrl.podsResource"
+                                  if-show-detail="$ctrl.ifShowDetail" with-statuses="true">
+                </kd-pod-card-list>
+              </kd-content>
+            </kd-content-card>
+
+          </md-tab>
+          <md-tab label="{{$ctrl.event}}">
+            <kd-event-card-list event-list="$ctrl.nodes.eventList"></kd-event-card-list>
+          </md-tab>
+        </md-tabs>
+      </md-content>
+      <!-- <kd-content-card ng-if="$ctrl.serviceList.services.length" ng-show="$ctrl.ifShowService">
+
+        <kd-title>Services</kd-title>
+        <kd-content>
+          <kd-service-card-list service-list="$ctrl.serviceList"
+                                service-list-resource="$ctrl.serviceListResource">
+          </kd-service-card-list>
+        </kd-content>
+      </kd-content-card> -->
+      <md-content>
+        <kd-content-card ng-if="$ctrl.nodes.serviceList.services.length" ng-show="$ctrl.ifShowService">
+          <kd-title>{{$ctrl.i18n.MSG_RC_DETAIL_SERVICES_TITLE}}</kd-title>
+          <kd-content>
+            <kd-service-card-list service-list="$ctrl.nodes.serviceList"
+                                  service-list-resource="$ctrl.serviceListResource">
+            </kd-service-card-list>
+          </kd-content>
+        </kd-content-card>
+
+        <kd-content-card ng-if="$ctrl.endpointList.endpoints.length" ng-show="$ctrl.ifShowService">
+        <!--<kd-content-card>-->
+          <kd-title>{{$ctrl.i18n.MSG_RC_DETAIL_ENDPOINTS_TITLE}}</kd-title>
+          <kd-content>
+            <kd-endpoint-card-list endpoint-list="$ctrl.endpointList"
+                                  endpoint-list-resource="$ctrl.endpointListResource">
+            </kd-endpoint-card-list>
+          </kd-content>
+        </kd-content-card>
+      </md-content>
+
   </kd-resource-card-footer>
+
 </kd-resource-card>

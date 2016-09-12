@@ -41,31 +41,41 @@ limitations under the License.
         </a>
       </div>
     </kd-resource-card-column>
+
     <kd-resource-card-column ng-if="$ctrl.areMultipleNamespacesSelected()">
       <div>
         <kd-middle-ellipsis display-string="{{::$ctrl.replicaSet.objectMeta.namespace}}">
         </kd-middle-ellipsis>
       </div>
     </kd-resource-card-column>
+
     <kd-resource-card-column>
       <kd-labels labels="::$ctrl.replicaSet.objectMeta.labels"></kd-labels>
     </kd-resource-card-column>
+
     <kd-resource-card-column>
       <span class="kd-replicase-card-pods-stat">
         {{::$ctrl.replicaSet.pods.running}} /
         {{::$ctrl.replicaSet.pods.desired}}
       </span>
     </kd-resource-card-column>
+
     <kd-resource-card-column>
       {{::$ctrl.replicaSet.objectMeta.creationTimestamp | relativeTime}}
       <md-tooltip>
         {{::$ctrl.getCreatedAtTooltip($ctrl.replicaSet.objectMeta.creationTimestamp)}}
       </md-tooltip>
     </kd-resource-card-column>
+
     <kd-resource-card-column>
       <div ng-repeat="image in ::$ctrl.replicaSet.containerImages track by $index">
         <kd-middle-ellipsis display-string="{{::image}}"></kd-middle-ellipsis>
       </div>
+    </kd-resource-card-column>
+    <kd-resource-card-column>
+      <md-button ng-click="$ctrl.changeShow()" style="cursor:pointer;background-color:#eee">
+        show
+      </md-button>
     </kd-resource-card-column>
     <kd-resource-card-column class="kd-row-layout-column kd-icon-column">
       <kd-resource-card-menu>
@@ -75,10 +85,48 @@ limitations under the License.
         </kd-resource-card-edit-menu-item>
       </kd-resource-card-menu>
     </kd-resource-card-column>
+
   </kd-resource-card-columns>
-  <kd-resource-card-footer ng-if="::$ctrl.hasWarnings()">
-      <div ng-repeat="warning in ::$ctrl.replicaSet.pods.warnings">
-        <span class="kd-error">{{::warning.message}}</span>
-      </div>
-  </kd-resource-card-footer>
+
+<kd-resource-card-footer>
+  <md-content ng-if="$ctrl.pass" ng-show="$ctrl.ifShowDetail" style="padding-left:40px">
+    <md-tabs md-border-bottom md-dynamic-height>
+      <md-tab label="{{$ctrl.view}}">
+        <kd-replica-set-info replica-set="$ctrl.nodes"></kd-replica-set-info>
+
+        <kd-content-card ng-if="$ctrl.nodes.podList.pods.length" >
+          <kd-title>pod list</kd-title>
+          <kd-content>
+            <kd-pod-card-list pod-list="$ctrl.nodes.podList" pod-list-resource="$ctrl.podsResource"
+                              if-show-detail="$ctrl.ifShowDetail" with-statuses="true">
+            </kd-pod-card-list>
+          </kd-content>
+        </kd-content-card>
+      </md-tab>
+
+      <md-tab label="{{$ctrl.event}}">
+        <kd-event-card-list event-list="$ctrl.nodes.eventList"></kd-event-card-list>
+      </md-tab>
+    </md-tabs>
+  </md-content>
+
+  <kd-content-card ng-if="$ctrl.serviceList.services.length" ng-show="$ctrl.ifShowService">
+    <kd-title>SERVICES</kd-title>
+    <kd-content>
+      <kd-service-card-list service-list="$ctrl.serviceList"
+                            service-list-resource="$ctrl.serviceListResource">
+      </kd-service-card-list>
+    </kd-content>
+  </kd-content-card>
+
+  <kd-content-card ng-if="$ctrl.endpointList.endpoints.length" ng-show="$ctrl.ifShowService">
+    <kd-title>{{::$ctrl.i18n.MSG_REPLICA_SET_LIST_ENDPOINTS_TITLE}}</kd-title>
+    <kd-content>
+      <kd-endpoint-card-list endpoint-list="$ctrl.endpointList"
+                             endpoint-list-resource="$ctrl.endpointListResource">
+      </kd-endpoint-card-list>
+    </kd-content>
+  </kd-content-card>
+
+</kd-resource-card-footer>
 </kd-resource-card>

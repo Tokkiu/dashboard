@@ -26,7 +26,7 @@ import (
 
 // GetReplicationControllerEvents returns events for particular namespace and replication
 // controller or error if occurred.
-func GetReplicationControllerEvents(client client.Interface, dsQuery *common.DataSelectQuery,
+func GetReplicationControllerEvents(client client.Interface, pQuery *common.PaginationQuery,
 	namespace, replicationControllerName string) (*common.EventList, error) {
 
 	log.Printf("Getting events related to %s replication controller in %s namespace", replicationControllerName,
@@ -53,7 +53,7 @@ func GetReplicationControllerEvents(client client.Interface, dsQuery *common.Dat
 		apiEvents = resourceEvent.FillEventsType(apiEvents)
 	}
 
-	events := resourceEvent.CreateEventList(apiEvents, dsQuery)
+	events := resourceEvent.CreateEventList(apiEvents, pQuery)
 
 	log.Printf("Found %d events related to %s replication controller in %s namespace",
 		len(events.Events), replicationControllerName, namespace)

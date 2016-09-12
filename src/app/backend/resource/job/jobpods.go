@@ -30,7 +30,7 @@ import (
 
 // GetJobPods return list of pods targeting job.
 func GetJobPods(client k8sClient.Interface, heapsterClient client.HeapsterClient,
-	dsQuery *common.DataSelectQuery, jobName, namespace string) (*pod.PodList, error) {
+	pQuery *common.PaginationQuery, jobName, namespace string) (*pod.PodList, error) {
 	log.Printf("Getting replication controller %s pods in namespace %s", jobName, namespace)
 
 	pods, err := getRawJobPods(client, jobName, namespace)
@@ -38,7 +38,7 @@ func GetJobPods(client k8sClient.Interface, heapsterClient client.HeapsterClient
 		return nil, err
 	}
 
-	podList := pod.CreatePodList(pods, dsQuery, heapsterClient)
+	podList := pod.CreatePodList(pods, pQuery, heapsterClient)
 	return &podList, nil
 }
 

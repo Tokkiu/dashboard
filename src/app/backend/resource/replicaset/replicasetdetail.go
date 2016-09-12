@@ -22,7 +22,6 @@ import (
 	"github.com/kubernetes/dashboard/src/app/backend/client"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/common"
 	"github.com/kubernetes/dashboard/src/app/backend/resource/pod"
-	resourceService "github.com/kubernetes/dashboard/src/app/backend/resource/service"
 )
 
 // ReplicaSetDetail is a presentation layer view of Kubernetes Replica Set resource. This means
@@ -38,9 +37,6 @@ type ReplicaSetDetail struct {
 	// Detailed information about Pods belonging to this Replica Set.
 	PodList pod.PodList `json:"podList"`
 
-	// Detailed information about service related to Replica Set.
-	ServiceList resourceService.ServiceList `json:"serviceList"`
-
 	// Container images of the Replica Set.
 	ContainerImages []string `json:"containerImages"`
 
@@ -50,7 +46,7 @@ type ReplicaSetDetail struct {
 
 // GetReplicaSetDetail gets replica set details.
 func GetReplicaSetDetail(client k8sClient.Interface, heapsterClient client.HeapsterClient,
-	dsQuery *common.DataSelectQuery, namespace, name string) (*ReplicaSetDetail, error) {
+	pQuery *common.PaginationQuery, namespace, name string) (*ReplicaSetDetail, error) {
 	log.Printf("Getting details of %s service in %s namespace", name, namespace)
 
 	// TODO(floreks): Use channels.
@@ -64,7 +60,7 @@ func GetReplicaSetDetail(client k8sClient.Interface, heapsterClient client.Heaps
 		return nil, err
 	}
 
-	podList, err := GetReplicaSetPods(client, heapsterClient, dsQuery, name, namespace)
+	podList, err := GetReplicaSetPods(client, heapsterClient, pQuery, name, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +70,6 @@ func GetReplicaSetDetail(client k8sClient.Interface, heapsterClient client.Heaps
 		return nil, err
 	}
 
-	serviceList, err := GetReplicaSetServices(client, dsQuery, namespace, name)
-	if err != nil {
-		return nil, err
-	}
-
-	replicaSet := ToReplicaSetDetail(replicaSetData, *eventList, *podList, *podInfo, *serviceList)
+	replicaSet := ToReplicaSetDetail(replicaSetData, *eventList, *podList, *podInfo)
 	return &replicaSet, nil
 }

@@ -20,7 +20,7 @@ limitations under the License.
     <kd-info-card-section name="{{::$ctrl.i18n.MSG_CONFIG_MAP_INFO_DATA_SECTION}}">
       <kd-info-card-entry ng-repeat="(key, value) in ::$ctrl.configMapDetail.data"
           title="{{::key}}">
-        <pre class="kd-pre-block">{{::value}}</pre>
+        <pre>{{::value}}</pre>
       </kd-info-card-entry>
     </kd-info-card-section>
   </kd-info-card>

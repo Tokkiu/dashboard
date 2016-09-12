@@ -41,15 +41,32 @@ export class DeleteResourceController {
 
     /** @export */
     this.i18n = i18n(resourceKindName, objectMeta);
+
+    this.resourceKindName_=resourceKindName;
   }
 
   /**
    * @export
    */
   remove() {
-    let resource = this.resource_(
-        `api/v1/${this.typeMeta_.kind}/namespace/${this.objectMeta.namespace}/name/${this.objectMeta.name}`);
-    resource.remove(this.mdDialog_.hide, this.mdDialog_.cancel);
+    // console.log("this.resource_:"+this.resource_);
+    if (this.typeMeta_!=="pods") {
+      let resource = this.resource_(
+          `api/v1/${this.typeMeta_.kind}/namespace/${this.objectMeta.namespace}/name/${this.objectMeta.name}`);
+      resource.remove(this.mdDialog_.hide,this.mdDialog_.cancel);
+    }else {
+      var len=this.objectMeta.length;
+      // console.log(len);
+      while (len!=0) {
+        len--;
+        console.log("len:"+len);
+        // var objectMeta=this.objectMeta.pop();
+        let resource = this.resource_(
+            `api/v1/pod/namespace/${this.objectMeta[len].namespace}/name/${this.objectMeta[len].name}`);
+        len>0?resource.remove():resource.remove(this.mdDialog_.hide,this.mdDialog_.cancel);
+      }
+    }
+
   }
 
   /**
@@ -84,5 +101,7 @@ function i18n(resourceKindName, objectMeta) {
           'objectName': objectMeta.name,
           'namespaceName': objectMeta.namespace,
         }),
+    MSG_DELETE_RESOURCE_CONFIRM_QUESTION_ALL:"Are you sure you want to delete these failed pods?",
+    MSG_DELETE_RESOURCE_DIALOG_TITLE_ALL:"Delete Pods"
   };
 }

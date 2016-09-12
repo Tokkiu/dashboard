@@ -16,11 +16,12 @@ import {actionbarViewName, stateName as chromeStateName} from 'chrome/chrome_sta
 import {breadcrumbsConfig} from 'common/components/breadcrumbs/breadcrumbs_service';
 import {PaginationService} from 'common/pagination/pagination_service';
 
-import {SecretListController} from './list_controller';
-import {stateName} from './list_state';
-import {stateUrl} from './list_state';
+import {EndpointListController} from './endpointlist_controller';
+import {stateName, stateUrl} from './endpointlist_state';
 
 /**
+ * Configures states for the endpoint list view.
+ *
  * @param {!ui.router.$stateProvider} $stateProvider
  * @ngInject
  */
@@ -29,39 +30,39 @@ export default function stateConfig($stateProvider) {
     url: stateUrl,
     parent: chromeStateName,
     resolve: {
-      'secretList': resolveSecretList,
+      'endpointList': resolveEndpointList,
     },
     data: {
       [breadcrumbsConfig]: {
-        'label': i18n.MSG_BREADCRUMBS_SECRETS_LABEL,
+        'label': i18n.MSG_BREADCRUMBS_SERVICES_LABEL,
       },
     },
     views: {
       '': {
-        controller: SecretListController,
-        controllerAs: '$ctrl',
-        templateUrl: 'secretlist/list.html',
+        controller: EndpointListController,
+        controllerAs: 'ctrl',
+        templateUrl: 'endpointlist/endpointlist.html',
       },
       [actionbarViewName]: {
-        templateUrl: 'secretlist/actionbar.html',
+        templateUrl: 'endpointlist/actionbar.html',
       },
     },
   });
 }
 
 /**
- * @param {!angular.Resource} kdSecretListResource
+ * @param {!angular.Resource} kdEndpointListResource
  * @param {!./../chrome/chrome_state.StateParams} $stateParams
  * @return {!angular.$q.Promise}
  * @ngInject
  */
-export function resolveSecretList(kdSecretListResource, $stateParams) {
+export function resolveEndpointList(kdEndpointListResource, $stateParams) {
   /** @type {!backendApi.PaginationQuery} */
-  let query = PaginationService.getDefaultResourceQuery($stateParams.namespace);
-  return kdSecretListResource.get(query).$promise;
+  let query = paginationService.getDefaultResourceQuery($stateParams.namespace);
+  return kdEndpointListResource.get(query).$promise;
 }
 
 const i18n = {
-  /** @type {string} @desc Label 'Secrets' that appears as a breadcrumbs on the action bar. */
-  MSG_BREADCRUMBS_SECRETS_LABEL: goog.getMsg('Secrets'),
+  /** @type {string} @desc Label 'Endpoints' that appears as a breadcrumbs on the action bar. */
+  MSG_BREADCRUMBS_SERVICES_LABEL: goog.getMsg('Endpoints'),
 };

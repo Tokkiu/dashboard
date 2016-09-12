@@ -24,6 +24,9 @@ export class ReplicaSetCardListController {
     /** @export {!backendApi.ReplicaSetList} Initialized from binding. */
     this.replicaSetList;
 
+    /** @export Initialized from binding. */
+    this.ifShowDetail;
+    // console.log("replicaSet card list show:"+this.ifShowDetail);
     /** @private {!./../common/namespace/namespace_service.NamespaceService} */
     this.kdNamespaceService_ = kdNamespaceService;
 
@@ -48,6 +51,7 @@ export const replicaSetCardListComponent = {
   bindings: {
     'replicaSetList': '<',
     'replicaSetListResource': '<',
+    'ifShowDetail':'<',
   },
   templateUrl: 'replicasetlist/replicasetcardlist.html',
   controller: ReplicaSetCardListController,
@@ -72,4 +76,7 @@ const i18n = {
   /** @export {string} @desc Label 'Images' which appears as a column label in the
       table of replica sets (replica set list view). */
   MSG_REPLICA_SET_LIST_IMAGES_LABEL: goog.getMsg('Images'),
+  /** @export {string} @desc Label 'Option' which appears as a column label in the
+      table of replica sets (replica set list view). */
+  MSG_REPLICA_SET_LIST_OPTION_LABEL:goog.getMsg('Option'),
 };

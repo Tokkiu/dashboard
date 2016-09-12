@@ -15,6 +15,7 @@
 package common
 
 import (
+	"log"
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/apis/apps"
 	"k8s.io/kubernetes/pkg/apis/batch"
@@ -24,6 +25,7 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 
 	kdClient "github.com/kubernetes/dashboard/src/app/backend/client"
+	"fmt"
 )
 
 // ResourceChannels struct holds channels to resource lists. Each list channel is paired with
@@ -74,11 +76,7 @@ type ResourceChannels struct {
 	// List and error channels to PodMetrics.
 	PodMetrics PodMetricsChannel
 
-	// List and error channels to PersistentVolumes
-	PersistentVolumeList PersistentVolumeListChannel
-
-	// List and error channels to PersistentVolumeClaims
-	PersistentVolumeClaimList PersistentVolumeClaimListChannel
+	EndpointList EndpointListChannel
 }
 
 // ServiceListChannel is a list and error channels to Services.
@@ -217,6 +215,89 @@ func GetPodListChannelWithOptions(client client.PodsNamespacer, nsQuery *Namespa
 
 	return channel
 }
+
+// GetPodListChannelWithOptions is GetPodListChannel plus listing options with status.
+func GetPodListChannelWithOptionsByStatus(client client.PodsNamespacer, nsQuery *NamespaceQuery,sQuery *NamespaceQuery,
+options api.ListOptions, numReads int) PodListChannel {
+
+	channel := PodListChannel{
+		List:  make(chan *api.PodList, numReads),
+		Error: make(chan error, numReads),
+	}
+
+	go func() {
+		list, err := client.Pods(nsQuery.ToRequestParam()).List(options)
+		var filteredItems []api.Pod
+		for _, item := range list.Items {
+			log.Printf(item.ObjectMeta.Namespace)
+			log.Printf(item.ObjectMeta.Name)
+			if nsQuery.Matches(item.ObjectMeta.Namespace) {
+				var thestatus string;
+				switch item.Status.Phase {
+				case "Succeeded":
+					thestatus="Succeeded"
+					break
+				case "Failed":
+					thestatus="Failed"
+					break
+				case "Running":
+					thestatus="Running"
+					break
+				case "Pending":
+					thestatus="Pending"
+					break
+				default:
+					thestatus="Failed"
+					break
+				}
+				if sQuery.Matches(thestatus) {
+					fmt.Print(item.Status.Phase)
+					filteredItems = append(filteredItems, item)
+				}
+
+			}
+		}
+		list.Items = filteredItems
+		for i := 0; i < numReads; i++ {
+			channel.List <- list
+			channel.Error <- err
+		}
+	}()
+
+	return channel
+}
+
+// ss test
+type EndpointListChannel struct {
+	List  chan *api.EndpointsList
+	Error chan error
+}
+
+func GetEndpointListChannel(client client.EndpointsNamespacer,
+nsQuery *NamespaceQuery, numReads int) EndpointListChannel {
+
+	channel := EndpointListChannel{
+		List:  make(chan *api.EndpointsList, numReads),
+		Error: make(chan error, numReads),
+	}
+	go func() {
+		list, err := client.Endpoints(nsQuery.ToRequestParam()).List(listEverything)
+		var filteredItems []api.Endpoints
+		for _, item := range list.Items {
+			if nsQuery.Matches(item.ObjectMeta.Namespace) {
+				filteredItems = append(filteredItems, item)
+			}
+		}
+		list.Items = filteredItems
+		for i := 0; i < numReads; i++ {
+			channel.List <- list
+			channel.Error <- err
+		}
+	}()
+
+	return channel
+}
+// ss test end
 
 // ReplicationControllerListChannel is a list and error channels to Nodes.
 type ReplicationControllerListChannel struct {
@@ -450,58 +531,6 @@ func GetConfigMapListChannel(client client.ConfigMapsNamespacer, nsQuery *Namesp
 			}
 		}
 		list.Items = filteredItems
-		for i := 0; i < numReads; i++ {
-			channel.List <- list
-			channel.Error <- err
-		}
-	}()
-
-	return channel
-}
-
-// PersistentVolumeListChannel is a list and error channels to PersistentVolumes.
-type PersistentVolumeListChannel struct {
-	List  chan *api.PersistentVolumeList
-	Error chan error
-}
-
-// GetPersistentVolumeListChannel returns a pair of channels to a PersistentVolume list and errors that
-// both must be read numReads times.
-func GetPersistentVolumeListChannel(client client.PersistentVolumesInterface, numReads int) PersistentVolumeListChannel {
-	channel := PersistentVolumeListChannel{
-		List:  make(chan *api.PersistentVolumeList, numReads),
-		Error: make(chan error, numReads),
-	}
-
-	go func() {
-		list, err := client.PersistentVolumes().List(listEverything)
-		for i := 0; i < numReads; i++ {
-			channel.List <- list
-			channel.Error <- err
-		}
-	}()
-
-	return channel
-}
-
-// PersistentVolumeClaimListChannel is a list and error channels to PersistentVolumeClaims.
-type PersistentVolumeClaimListChannel struct {
-	List  chan *api.PersistentVolumeClaimList
-	Error chan error
-}
-
-// GetPersistentVolumeClaimListChannel returns a pair of channels to a PersistentVolumeClaim list and errors that
-// both must be read numReads times.
-func GetPersistentVolumeClaimListChannel(client client.PersistentVolumeClaimsNamespacer, nsQuery *NamespaceQuery,
-	numReads int) PersistentVolumeClaimListChannel {
-
-	channel := PersistentVolumeClaimListChannel{
-		List:  make(chan *api.PersistentVolumeClaimList, numReads),
-		Error: make(chan error, numReads),
-	}
-
-	go func() {
-		list, err := client.PersistentVolumeClaims(nsQuery.ToRequestParam()).List(listEverything)
 		for i := 0; i < numReads; i++ {
 			channel.List <- list
 			channel.Error <- err

@@ -29,7 +29,7 @@ import (
 // GetReplicationControllerPods return list of pods targeting replication controller associated
 // to given name.
 func GetReplicationControllerPods(client k8sClient.Interface, heapsterClient client.HeapsterClient,
-	dsQuery *common.DataSelectQuery, rcName, namespace string) (*pod.PodList, error) {
+	pQuery *common.PaginationQuery, rcName, namespace string) (*pod.PodList, error) {
 	log.Printf("Getting replication controller %s pods in namespace %s", rcName, namespace)
 
 	pods, err := getRawReplicationControllerPods(client, rcName, namespace)
@@ -37,7 +37,7 @@ func GetReplicationControllerPods(client k8sClient.Interface, heapsterClient cli
 		return nil, err
 	}
 
-	podList := pod.CreatePodList(pods, dsQuery, heapsterClient)
+	podList := pod.CreatePodList(pods, pQuery, heapsterClient)
 	return &podList, nil
 }
 

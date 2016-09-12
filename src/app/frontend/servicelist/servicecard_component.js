@@ -24,7 +24,7 @@ export class ServiceCardController {
    * @param {!./../common/namespace/namespace_service.NamespaceService} kdNamespaceService
    * @ngInject
    */
-  constructor($state, kdNamespaceService) {
+  constructor($state, $resource, kdNamespaceService) {
     /** @private {!./../common/namespace/namespace_service.NamespaceService} */
     this.kdNamespaceService_ = kdNamespaceService;
 
@@ -34,8 +34,30 @@ export class ServiceCardController {
     /** @private {!ui.router.$state} */
     this.state_ = $state;
 
+    this.resource_ = $resource;
+
     /** @export */
     this.i18n = i18n;
+
+    this.pass = false;
+
+    this.serviceDetail = null;
+  }
+
+  $onInit(){
+    this.resource_(`api/v1/service/${this.service.objectMeta.namespace}/${this.service.objectMeta.name}`)
+        .get().$promise.then((response) => {
+          this.serviceDetail = response;
+          // this.pass = false;
+        });
+  }
+
+  changeShow(){
+    if (this.pass) {
+        this.pass=false;
+    }else {
+      this.pass=true;
+    }
   }
 
   /**
@@ -101,4 +123,6 @@ export const serviceCardComponent = {
 const i18n = {
   /** @export {string} @desc tooltip for pending service card icon */
   MSG_SERVICE_IS_PENDING_TOOLTIP: goog.getMsg('This service is in a pending state.'),
+  /** @export {string} @desc tooltip for pending service card icon */
+  MSG_SERVICE_VIEW_TOOLTIP:goog.getMsg('VIEW'),
 };

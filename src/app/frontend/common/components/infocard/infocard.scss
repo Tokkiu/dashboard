@@ -22,8 +22,6 @@
   kd-info-card-section {
     display: flex;
     flex-grow: 1;
-    max-width: 100%;
-    overflow: hidden;
     padding-right: 2 * $baseline-grid;
   }
 }

@@ -49,7 +49,7 @@ type Job struct {
 
 // GetJobList returns a list of all Jobs in the cluster.
 func GetJobList(client client.Interface, nsQuery *common.NamespaceQuery,
-	dsQuery *common.DataSelectQuery) (*JobList, error) {
+	pQuery *common.PaginationQuery) (*JobList, error) {
 	log.Printf("Getting list of all jobs in the cluster")
 
 	channels := &common.ResourceChannels{
@@ -58,12 +58,12 @@ func GetJobList(client client.Interface, nsQuery *common.NamespaceQuery,
 		EventList: common.GetEventListChannel(client, nsQuery, 1),
 	}
 
-	return GetJobListFromChannels(channels, dsQuery)
+	return GetJobListFromChannels(channels, pQuery)
 }
 
 // GetJobList returns a list of all Jobs in the cluster
 // reading required resource list once from the channels.
-func GetJobListFromChannels(channels *common.ResourceChannels, dsQuery *common.DataSelectQuery) (
+func GetJobListFromChannels(channels *common.ResourceChannels, pQuery *common.PaginationQuery) (
 	*JobList, error) {
 
 	jobs := <-channels.JobList.List
@@ -90,29 +90,25 @@ func GetJobListFromChannels(channels *common.ResourceChannels, dsQuery *common.D
 		return nil, err
 	}
 
-	return CreateJobList(jobs.Items, pods.Items, events.Items, dsQuery), nil
+	return CreateJobList(jobs.Items, pods.Items, events.Items, pQuery), nil
 }
 
 // CreateJobList returns a list of all Job model objects in the cluster, based on all
 // Kubernetes Job API objects.
 func CreateJobList(jobs []batch.Job, pods []api.Pod, events []api.Event,
-	dsQuery *common.DataSelectQuery) *JobList {
+	pQuery *common.PaginationQuery) *JobList {
 
 	jobList := &JobList{
 		Jobs:     make([]Job, 0),
 		ListMeta: common.ListMeta{TotalItems: len(jobs)},
 	}
 
-	jobs = fromCells(common.GenericDataSelect(toCells(jobs), dsQuery))
+	jobs = paginate(jobs, pQuery)
 
 	for _, job := range jobs {
-		var completions int32
 		matchingPods := common.FilterNamespacedPodsBySelector(pods, job.ObjectMeta.Namespace,
 			job.Spec.Selector.MatchLabels)
-		if job.Spec.Completions != nil {
-			completions = *job.Spec.Completions
-		}
-		podInfo := common.GetPodInfo(job.Status.Active, completions, matchingPods)
+		podInfo := common.GetPodInfo(job.Status.Active, *job.Spec.Completions, matchingPods)
 		podInfo.Warnings = event.GetPodsEventWarnings(events, matchingPods)
 
 		jobList.Jobs = append(jobList.Jobs, ToJob(&job, &podInfo))

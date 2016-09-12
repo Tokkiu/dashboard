@@ -13,11 +13,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+<div class="" style="widht:80%;float:left;height:100%">
+  <kd-content-card>
+    <kd-content style="margin:0 auto">
+    <kd-namespace-select style="margin:0 auto"></kd-namespace-select>
+    <!-- <md-button kd-namespace-select style="margin:0 auto"> -->
+    <!-- </md-button> -->
+  </kd-content>
+  </kd-content-card>
+  <kd-content-card ng-repeat="selection in $ctrl.selects" style="text-align:center">
+    <kd-content>
+    <md-button type="button"  name="button" ng-click="$ctrl.changeSelect(selection.select)" style="margin:0 auto">{{selection.i18n}}</md-button>
+  </kd-content>
+  </kd-content-card>
+</div>
+<div ng-if="!$ctrl.shouldShowZeroState()" style="width:100%">
+  <!-- <div class="" style="width:50%"> -->
 
-<div ng-if="!$ctrl.shouldShowZeroState()">
+  <!-- </div> -->
   <kd-content-card ng-if="$ctrl.workloads.daemonSetList.daemonSets.length">
     <kd-title>
-      <a ui-sref="daemonset">
+      <a sref="daemonset">
         {{::$ctrl.i18n.MSG_WORKLOADS_DEAMON_SETS_LABEL}}
       </a>
     </kd-title>
@@ -28,9 +44,9 @@ limitations under the License.
     </kd-content>
   </kd-content-card>
 
-  <kd-content-card ng-if=$ctrl.workloads.deploymentList.deployments.length>
+  <kd-content-card ng-if="$ctrl.workloads.deploymentList.deployments.length" ng-show="$ctrl.option==='deployments'">
     <kd-title>
-      <a ui-sref="deployment">
+      <a sref="deployment">
         {{::$ctrl.i18n.MSG_WORKLOADS_DEPLOYMENTS_LABEL}}
       </a>
     </kd-title>
@@ -43,7 +59,7 @@ limitations under the License.
 
   <kd-content-card ng-if="$ctrl.workloads.petSetList.petSets.length">
     <kd-title>
-      <a ui-sref="petset">
+      <a sref="petset">
         {{::$ctrl.i18n.MSG_WORKLOADS_PET_SETS_LABEL}}
       </a>
     </kd-title>
@@ -54,22 +70,22 @@ limitations under the License.
     </kd-content>
   </kd-content-card>
 
-  <kd-content-card ng-if="$ctrl.workloads.replicaSetList.replicaSets.length">
+  <kd-content-card ng-if="$ctrl.workloads.replicaSetList.replicaSets.length" ng-show="$ctrl.option==='replica set'" >
     <kd-title>
-      <a ui-sref="replicaset">
+      <a sref="replicaset">
         {{::$ctrl.i18n.MSG_WORKLOADS_REPLICA_SETS_LABEL}}
       </a>
     </kd-title>
     <kd-content>
       <kd-replica-set-card-list replica-set-list="$ctrl.workloads.replicaSetList"
-                                replica-set-list-resource="$ctrl.replicaSetListResource">
+                                replica-set-list-resource="$ctrl.replicaSetListResource" if-show-detail="false">
       </kd-replica-set-card-list>
     </kd-content>
   </kd-content-card>
 
-  <kd-content-card ng-if="$ctrl.workloads.jobList.jobs.length">
+  <kd-content-card ng-if="$ctrl.workloads.jobList.jobs.length" ng-show="$ctrl.option==='job'">
     <kd-title>
-      <a ui-sref="job">
+      <a sref="job">
         {{::$ctrl.i18n.MSG_WORKLOADS_JOBS_LABEL}}
       </a>
     </kd-title>
@@ -80,28 +96,60 @@ limitations under the License.
     </kd-content>
   </kd-content-card>
 
-  <kd-content-card ng-if="$ctrl.workloads.replicationControllerList.replicationControllers.length">
+  <kd-content-card ng-if="$ctrl.workloads.replicationControllerList.replicationControllers.length" ng-show="$ctrl.option==='replication controller'">
     <kd-title>
-      <a ui-sref="replicationcontroller">
+      <a sref="replicationcontroller">
         {{::$ctrl.i18n.MSG_WORKLOADS_REPLICATION_CONTROLLERS_LABEL}}
       </a>
     </kd-title>
     <kd-content>
       <kd-replication-controller-card-list
               replication-controller-list="$ctrl.workloads.replicationControllerList"
-              replication-controller-list-resource="$ctrl.rcListResource">
+              replication-controller-list-resource="$ctrl.rcListResource" if-show-detail="false">
       </kd-replication-controller-card-list>
     </kd-content>
   </kd-content-card>
 
-  <kd-content-card ng-if="$ctrl.workloads.podList.pods.length">
+  <!--ss start serviceList on workload-->
+  <kd-content-card ng-if="$ctrl.workloads.serviceList.services.length" ng-show="$ctrl.option==='service'">
     <kd-title>
-      <a ui-sref="pod">
+      <a sref="service">
+        {{::$ctrl.i18n.MSG_WORKLOADS_SERVICES_LABEL}}
+      </a>
+    </kd-title>
+    <kd-content>
+      <kd-service-card-list service-list="$ctrl.workloads.serviceList"
+                            service-list-resource="$ctrl.serviceListResource" style="">
+      </kd-service-card-list>
+    </kd-content>
+  </kd-content-card>
+  <!--ss end-->
+
+
+  <!--ss start endpointList on workload-->
+  <kd-content-card ng-show="$ctrl.option==='endpoint'">
+    <kd-title>
+      <a sref="endpoint">
+        {{::$ctrl.i18n.MSG_WORKLOADS_ENDPOINTS_LABEL}}
+      </a>
+    </kd-title>
+    <kd-content>
+      <kd-endpoint-card-list endpoint-list="$ctrl.endpointList"
+                            endpoint-list-resource="$ctrl.endpointListResource" style="">
+      </kd-endpoint-card-list>
+    </kd-content>
+  </kd-content-card>
+  <!--ss end-->
+
+
+  <kd-content-card ng-if="$ctrl.workloads.podList.pods.length" ng-show="$ctrl.option==='pods'">
+    <kd-title>
+      <a sref="pod">
         {{::$ctrl.i18n.MSG_WORKLOADS_PODS_LABEL}}
       </a>
     </kd-title>
     <kd-content>
-      <kd-pod-card-list pod-list="$ctrl.workloads.podList" pod-list-resource="$ctrl.podListResource"
+      <kd-pod-card-list pod-list="$ctrl.workloads.podList" pod-list-resource="$ctrl.podListResource" if-show-detail="false"
                         with-statuses="true">
       </kd-pod-card-list>
     </kd-content>

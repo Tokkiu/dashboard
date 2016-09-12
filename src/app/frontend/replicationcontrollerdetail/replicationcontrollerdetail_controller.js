@@ -27,10 +27,10 @@ export default class ReplicationControllerDetailController {
    * @ngInject
    */
   constructor(
-      replicationControllerDetail, $state, $stateParams, kdRCPodsResource, kdRCServicesResource) {
+      replicationControllerDetail, $state, $stateParams, kdRCPodsResource, kdRCServicesResource,$resource,kdEndpointListResource) {
     /** @export {!backendApi.ReplicationControllerDetail} */
     this.replicationControllerDetail = replicationControllerDetail;
-
+    console.log(this.replicationControllerDetail);
     /** @export {!angular.Resource} */
     this.podListResource = kdRCPodsResource;
 
@@ -45,6 +45,40 @@ export default class ReplicationControllerDetailController {
 
     /** @export */
     this.i18n = i18n;
+    this.resource_=$resource;
+    this.serviceNameList=[];
+    this.endpointList = {"listMeta":{"totalItems": 0}, "endpoints": []};
+    // this.endpointTotalItems = 0;
+
+    this.endpointListResource = kdEndpointListResource;
+    this.init_();
+  }
+  init_(){
+    let namespace=this.replicationControllerDetail.objectMeta.namespace;
+    let name=this.replicationControllerDetail.objectMeta.name;
+    var sl=this.replicationControllerDetail.serviceList.services;
+    for (var i = 0; i < sl.length; i++) {
+      this.serviceNameList.push(sl[i].objectMeta.name);
+    }
+    this.resource_('api/v1/endpoint/'+namespace)
+        .get().$promise.then((response)=>{
+          var el=response;
+          // console.log('response');
+          // console.log(el);
+          // console.log(this.serviceNameList);
+          for (var m = 0; m < el.endpoints.length; m++) {
+            console.log(el.endpoints[m].objectMeta.name);
+            if (this.serviceNameList.indexOf(el.endpoints[m].objectMeta.name)<0) {
+              // console.log('index not');
+            }else {
+              // console.log("index in");
+              this.endpointList.endpoints.push(el.endpoints[m]);
+              this.endpointList.listMeta.totalItems++;
+              // console.log(this.endpointList);
+            }
+          }
+          // console.log(this.endpointList);
+        });
   }
 
   /**
@@ -80,4 +114,7 @@ const i18n = {
   /** @export {string} @desc Label 'Events' for the right navigation tab on the replication
       controller details page. */
   MSG_RC_DETAIL_EVENTS_LABEL: goog.getMsg('Events'),
+  /** @export {string} @desc Label 'Endpoints' for the right navigation tab on the replication
+      controller details page. */
+  MSG_RC_ENDOPINT_TITLE: goog.getMsg('Endpoints'),
 };

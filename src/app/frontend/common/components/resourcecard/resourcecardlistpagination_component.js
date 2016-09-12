@@ -37,6 +37,8 @@ export class ResourceCardListPaginationController {
     this.listResource;
     /** @export {{listMeta: !backendApi.ListMeta}} Initialized from binding. */
     this.list;
+    /** @export Initialized from binding. */
+    this.ifShowDetail;
     /** @private {!../../pagination/pagination_service.PaginationService} */
     this.paginationService_ = kdPaginationService;
     /** @private
@@ -114,9 +116,21 @@ export class ResourceCardListPaginationController {
         this.stateParams_.objectName);
 
     this.listResource.get(
-        query, (list) => { this.list = list; },
+        query, (list) => {
+          if(this.paginationId==='pods'){
+            var pods=list.pods;
+            for (var i = 0; i < pods.length; i++) {
+              list.pods[i].ifShowDetail=this.ifShowDetail;
+              list.pods[i].index=i;
+              //  console.log("i will get a pod");
+            }
+          }
+
+          this.list = list;
+        },
         (err) => { this.errorDialog_.open('Pagination error', err.data); });
   }
+
 }
 
 /**
@@ -143,6 +157,7 @@ export const resourceCardListPaginationComponent = {
     'paginationId': '@',
     'listResource': '<',
     'list': '=',
+    'ifShowDetail': '<',
   },
 };
 

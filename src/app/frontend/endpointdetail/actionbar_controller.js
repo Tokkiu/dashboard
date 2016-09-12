@@ -17,20 +17,11 @@
  */
 export class ActionBarController {
   /**
-   * @param {!backendApi.SecretDetail} secretDetail
+   * @param {!backendApi.ServiceDetail} serviceDetail
    * @ngInject
    */
-  constructor(secretDetail) {
-    /** @export {!backendApi.SecretDetail} */
-    this.details = secretDetail;
-
-    /** @export */
-    this.i18n = i18n;
+  constructor(serviceDetail) {
+    /** @export {!backendApi.ServiceDetail} */
+    this.details = serviceDetail;
   }
 }
-
-const i18n = {
-  /** @export {string} @desc Label 'Secret' which appears at the top of the
-      delete dialog, opened from a secret details page. */
-  MSG_SECRET_DETAIL_SECRET_LABEL: goog.getMsg('Secret'),
-};
